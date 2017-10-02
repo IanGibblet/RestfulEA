@@ -41,6 +41,7 @@ namespace RestfulEA.Controllers
             EA.Repository m_Repository = new EA.Repository();
 
             //I don't know what this is about but it can cause trouble if not caught
+            //new comment
             if (CleanURL.Count() > 2)
             {
                 if (CleanURL[1] == "__browserLink")
