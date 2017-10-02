@@ -1,0 +1,60 @@
+﻿
+@{
+    ViewBag.Title = "Root of Rest EA";
+}
+
+
+
+<!DOCTYPE html>
+
+
+<head>
+    <title>EA Webservice </title>
+    <link rel="stylesheet" type="text/css" href="~/Content/Styles_EA.css" />
+</head>
+
+<body>
+
+    <div id="container">
+        <div id="header">
+            <h2>Service Provider Catalogue</h2>
+
+        </div>
+        <div id="content">
+
+            Please Select an Enterprise Project.<br />
+            If you do not see your project here, make sure the .eap file is in C:\Landfill
+            <br />
+            <br />
+
+            @if (ViewBag.ListOfSPs != null)
+            {
+                foreach (String SP in ViewBag.ListOfSPs)
+                {           
+                        <a href="@ViewBag.CurrentURL/@SP">
+                            @SP
+                        </a>
+                        <br />      
+                }
+            }
+
+        </div>
+        <div id="footer">
+            Webservice for Enterprise Architect
+        </div>
+
+    </div>
+
+
+
+
+
+
+
+
+
+</body>
+
+
+
+

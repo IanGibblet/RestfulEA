@@ -1,0 +1,55 @@
+﻿
+@{
+    ViewBag.Title = "Contents of Element";
+}
+
+<!DOCTYPE html>
+
+<head>
+    <title>EA Webservice </title>
+    <link rel="stylesheet" type="text/css" href="~/Content/Styles_EA.css" />
+</head>
+
+<body>
+
+    <div id="container">
+
+        <div id="content">
+
+
+            The Element @ViewBag.WhatHasBeenSelected has the following properties <br />
+            <br />
+
+           Name is:        @ViewBag.ElementName    <br />
+           Meta type is:   @ViewBag.MetaType       <br />
+           StereoType is:  @ViewBag.SteroType      <br />
+           Notes:          @ViewBag.Notes          <br />
+
+
+            <br />   <br />
+            @ViewBag.ThingOfInterest has the following tagged values <br />
+
+            @foreach (String TaggedValue in ViewBag.ListOfTaggedValue)
+            {
+               
+                     <ul> @TaggedValue  </ul>               
+            }
+
+
+        </div>
+
+        <br />
+        <a href="@ViewBag.BackUrl">
+            Back
+        </a>
+
+        <div id="footer">
+            Webservice for Enterprise Architect
+        </div>
+    </div>
+</body>
+
+
+
+
+

@@ -1,0 +1,72 @@
+﻿
+@{
+    ViewBag.Title = "Show Element";
+}
+
+<!DOCTYPE html>
+
+<head>
+    <title>EA Webservice </title>
+    <link rel="stylesheet" type="text/css" href="~/Content/Styles_EA2.css" />
+</head>
+
+<body>
+
+    <div id="container">
+        <div id="header">
+            <h2> Contents of @ViewBag.TOI_Name  ( @ViewBag.TOI_Type )  ;</h2>
+        </div>
+        <div id="content">
+
+        
+
+            <b>Tags belonging to: </b> <br /> 
+            
+              @ViewBag.TOI_Name;
+            
+             <br /><br />
+      
+            @{ 
+                RestfulEA.Models.EA_TaggedValueStore myTVS = new RestfulEA.Models.EA_TaggedValueStore();
+
+                myTVS = ViewBag.TG_Store;
+
+
+              
+
+                foreach(KeyValuePair<string, string> pair in myTVS.TaggedDictionary )
+                {
+
+                    <ul>
+                        <li> @pair.Key : @pair.Value  </li>
+                    </ul>
+
+                }
+
+
+             
+
+
+
+            }
+
+
+
+
+
+            <br />
+
+
+         
+
+
+        </div>
+
+        <br />
+
+
+        <div id="footer">
+            Webservice for Enterprise Architect
+        </div>
+    </div>
+</body>

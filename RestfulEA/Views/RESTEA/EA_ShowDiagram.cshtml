@@ -1,0 +1,83 @@
+﻿
+@{
+    ViewBag.Title = "Show Diagram";
+}
+
+<!DOCTYPE html>
+
+<head>
+    <title>EA Webservice </title>
+    <link rel="stylesheet" type="text/css" href="~/Content/Styles_EA2.css" />
+</head>
+
+<body>
+
+    <div id="container">
+        <div id="header">
+            <h2> Contents of @ViewBag.TOI_Name  ( @ViewBag.TOI_Type )  ;</h2>
+        </div>
+        <div id="content">
+
+            @ViewBag.WhatHasBeenSelected  <br />
+
+          <b>Diagram Name</b> <br />
+           @ViewBag.DiagramName;
+
+            <br />
+
+            
+            <a href="@ViewBag.CurrentURL/BigPreview">
+                OSLC_Big_Preview
+            </a>
+
+            <br />
+
+            <a href="@ViewBag.CurrentURL/SmallPreview">
+                OSLC_Small_Preview
+            </a>
+
+
+
+
+
+
+            <br />
+            <br />
+            <b>Elements</b>
+
+
+
+            @if (ViewBag.ListOfElements != null)
+            {
+              
+
+                for (int i = 0; i < ViewBag.ListOfElements.Count; i++)
+                {
+                    List<string> LocalListElements = new List<string>();
+                    LocalListElements = ViewBag.ListOfElements;
+                    string AllElementData = LocalListElements.ElementAt(i);
+
+                    List<string> LocalListOfElementsName = new List<string>();
+                    LocalListOfElementsName = ViewBag.ListOfElementsNames;
+
+                    string ElementNameOnly = LocalListOfElementsName.ElementAt(i);
+
+                    <br />
+                    <a href="@ViewBag.URL_Prefix/@AllElementData">
+                        @ElementNameOnly
+                    </a>
+                }
+            }
+
+           
+
+        </div>
+
+        <br />
+
+
+        <div id="footer">
+            Webservice for Enterprise Architect
+        </div>
+    </div>
+</body>

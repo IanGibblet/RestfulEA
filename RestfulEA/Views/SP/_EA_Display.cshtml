@@ -1,0 +1,54 @@
+﻿
+@{
+    ViewBag.Title = "EA Contents Display";
+}
+
+<!DOCTYPE html>
+
+<head>
+    <title>EA Webservice </title>
+    <link rel="stylesheet" type="text/css" href="~/Content/Styles_EA.css" />
+</head>
+
+<body>
+
+    <div id="container">
+        <div id="header">
+            <h2>EA Tree Display</h2>
+        </div>
+    <div id="content">
+           
+
+            @ViewBag.WhatHasBeenSelected  <br />
+     
+            <br />
+            @ViewBag.WhatIsBelow
+    
+                @foreach (String pkg in ViewBag.ListOfPackages)
+                {
+                    <br />
+                    <a href="@ViewBag.CurrentURL/@pkg">
+                        @pkg
+                    </a>                    
+                }       
+        </div>
+
+
+        <br />
+
+
+        
+
+        <a href="@ViewBag.BackUrl">
+            Back
+        </a>  
+
+            <div id="footer">
+                Webservice for Enterprise Architect
+            </div>
+</div>
+</body>
+
+
+
+

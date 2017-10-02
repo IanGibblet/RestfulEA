@@ -1,0 +1,59 @@
+﻿
+@{
+    ViewBag.Title = "Contents of Diagram";
+}
+
+<!DOCTYPE html>
+
+<head>
+    <title>EA Webservice </title>
+    <link rel="stylesheet" type="text/css" href="~/Content/Styles_EA.css" />
+</head>
+
+<body>
+
+    <div id="container">
+
+        <div id="content">
+
+
+           The diagram @ViewBag.WhatHasBeenSelected has the following properties <br />
+            <br />
+
+            Created date  : @ViewBag.CreatedDate    <br />
+            Name          : @ViewBag.Name           <br />
+            PageHeight    : @ViewBag.PageHeight     <br /> 
+            PageWidth     : @ViewBag.PageWidth      <br />  
+            Type          : @ViewBag.Type           <br />     
+            Version       : @ViewBag.Version        <br />      
+            Notes         : @ViewBag.Notes          <br />        
+
+            <br />   <br />
+            @ViewBag.ThingOfInterest has the following elements <br />
+
+            @foreach (String Ele in ViewBag.ListOfElements)
+            {
+                <br />
+                <a href="@ViewBag.CurrentURL/@Ele">
+                    @Ele
+                </a>
+            }
+
+
+        </div>
+
+        <br />
+        <a href="@ViewBag.BackUrl">
+            Back
+        </a>
+
+        <div id="footer">
+            Webservice for Enterprise Architect
+        </div>
+    </div>
+</body>
+
+
+
+
+

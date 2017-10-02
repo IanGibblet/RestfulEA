@@ -1,0 +1,65 @@
+﻿
+@{
+    ViewBag.Title = "EA_small_preview";
+}
+
+<h2>Elements inside @ViewBag.DiagramName</h2>
+
+<br />
+
+@{
+    List<string> LocalListOfElementsName = new List<string>();
+    List<string> LocalListOfElementsType = new List<string>();
+    List<string> LocalListOfElementAuthor = new List<string>();
+    List<string> LocalListOfElementSteroType = new List<string>();
+    List<string> LocalListOfElementNotes = new List<string>();
+
+
+
+
+    LocalListOfElementsName = ViewBag.ListOfElementsNames;
+    LocalListOfElementsType = ViewBag.ListOfElementsTypes;
+    LocalListOfElementAuthor = ViewBag.ListOfElementAuthor;
+    LocalListOfElementSteroType = ViewBag.ListOfElementSteroType;
+    LocalListOfElementNotes = ViewBag.ListOfElementNotes;
+
+
+
+
+    <table>
+
+        <tr>
+            <th> Element Name  </th>
+            <th> Type  </th>
+            <th> Author</th>
+            <th> SteroType</th>
+            <th> Notes</th>
+        </tr>
+
+
+        @for (int iDO = 0; iDO < LocalListOfElementsName.Count; iDO++)
+        {
+
+            string ElementName = LocalListOfElementsName.ElementAt(iDO);
+            string ElementType = LocalListOfElementsType.ElementAt(iDO);
+            string ElementAuthor = LocalListOfElementAuthor.ElementAt(iDO);
+            string ElementSteroType = LocalListOfElementSteroType.ElementAt(iDO);
+            string ElementNotes = LocalListOfElementNotes.ElementAt(iDO);
+
+
+            <tr>
+                <td><text>@ElementName</text>  </td>
+                <td><text>@ElementType</text>  </td>
+                <td><text>@ElementAuthor</text>  </td>
+                <td><text>@ElementSteroType</text>  </td>
+                <td><text>@ElementNotes</text>  </td>
+
+            </tr>       
+
+        }
+
+
+    </table>
+
+
+}
