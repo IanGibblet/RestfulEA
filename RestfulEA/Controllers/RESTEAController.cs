@@ -7,6 +7,7 @@ using RestfulEA.Models;
 using System.Web.Script.Serialization;
 using System.Runtime.Serialization.Json;
 using System.IO;
+using Newtonsoft.Json.Linq;
 
 namespace RestfulEA.Controllers
 {
@@ -214,6 +215,8 @@ namespace RestfulEA.Controllers
                         msObj.Position = 0;
                         StreamReader sr = new StreamReader(msObj);
                         string jsonToReturn = sr.ReadToEnd();
+
+                        dynamic dynobject = JObject.Parse(jsonToReturn);
 
                         sr.Close();
                         msObj.Close();
