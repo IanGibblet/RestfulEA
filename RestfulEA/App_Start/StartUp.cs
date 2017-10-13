@@ -33,12 +33,19 @@ namespace RestfulEA.App_Start
             foreach (string strFilename in strListOfProjects)
             {
 
-                EA.Repository m_Repository = new EA.Repository();
-      
+            
+                try
+                {
+                   EA.Repository m_Repository = new EA.Repository();
+                    m_Repository.OpenFile(strFilename);
+                    ListOfRepositories.Add(m_Repository);
 
-                m_Repository.OpenFile(strFilename);
-                ListOfRepositories.Add(m_Repository);
+                }
 
+                catch
+                {
+
+                }
 
        
 

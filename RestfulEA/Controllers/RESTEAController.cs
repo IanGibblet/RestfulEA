@@ -13,6 +13,8 @@ namespace RestfulEA.Controllers
 {
     public class RESTEAController : Controller
     {
+
+
         // GET: RESTEA
         public ActionResult ParseURL()
         {
@@ -42,7 +44,7 @@ namespace RestfulEA.Controllers
             {
                 List<string> ListOfSPs = new List<string>();
                 ViewBag.ListOfSPs = GetListOfSPs();
-                ViewBag.CurrentURL = "RESTEA";
+                ViewBag.CurrentURL = "SPC";
                 return View("EA_Projects");
             }
 
@@ -53,6 +55,7 @@ namespace RestfulEA.Controllers
                 List<string> StringListOfRoots = new List<string>();
                 string ThingOfInterest = CleanURL[1];
                 m_Repository = getEA_Repos(ThingOfInterest);
+
                 ViewBag.CurrentURL = url;
                 ViewBag.SelectedSP = CleanURL[1];
                 ViewBag.ThingOfInterest = ThingOfInterest;
@@ -83,7 +86,7 @@ namespace RestfulEA.Controllers
                 string ThingOfInterest = CleanURL[CleanURL.Count() - 1];
                 m_Repository = getEA_Repos(CleanURL[1]);
                 ViewBag.CurrentURL = "/" + CleanURL[0] + "/" + CleanURL[1];
-                ViewBag.URL_Prefix = "http://localhost:56901/RESTEA/" + CleanURL[1];
+                ViewBag.URL_Prefix = "http://localhost:56901/SPC/" + CleanURL[1];
 
                 ViewBag.NameOfClickedElement = ThingOfInterest;
                 ViewBag.ThingOfInterest = ThingOfInterest;
@@ -255,7 +258,15 @@ namespace RestfulEA.Controllers
                    for (short i = 0; i < MyEle.TaggedValues.Count; i++)
                     {
                         EA.TaggedValue TagValue = (EA.TaggedValue)MyEle.TaggedValues.GetAt(i);
-                        myTVS.TaggedDictionary.Add(TagValue.Name, TagValue.Value);
+                        
+                       //Only add the key if it does not exist
+                        if(myTVS.TaggedDictionary.ContainsKey(TagValue.Name)== false)
+                        {
+                            myTVS.TaggedDictionary.Add(TagValue.Name, TagValue.Value);
+                        }
+
+
+                      
                    }
 
                     ViewBag.TG_Store = myTVS;
@@ -318,7 +329,14 @@ namespace RestfulEA.Controllers
                     for (short i = 0; i < ParentElement.TaggedValues.Count; i++)
                     {
                         EA.TaggedValue TagValue = (EA.TaggedValue)ParentElement.TaggedValues.GetAt(i);
-                        myTVS.TaggedDictionary.Add(TagValue.Name, TagValue.Value);
+
+                        if (myTVS.TaggedDictionary.ContainsKey(TagValue.Name) == false)
+                        {
+                             myTVS.TaggedDictionary.Add(TagValue.Name, TagValue.Value);
+                        }
+
+
+                           
                     }
 
 
@@ -512,10 +530,24 @@ namespace RestfulEA.Controllers
 
             foreach (EA.Repository reposLoop in MyListRepo)
             {
-                string EAFileName = System.IO.Path.GetFileNameWithoutExtension(reposLoop.ConnectionString);
 
-                if (EAFileName == pickedSP)
+                try
+                {
+
+
+                    string EAFileName = System.IO.Path.GetFileNameWithoutExtension(reposLoop.ConnectionString);
+                    if (EAFileName == pickedSP)
                     return reposLoop;
+
+                }
+                catch
+                {
+
+                }
+
+
+                    
+         
             }
             return null;
         }

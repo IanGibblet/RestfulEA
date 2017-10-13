@@ -31,12 +31,18 @@
             {
                 foreach (String SP in ViewBag.ListOfSPs)
                 {
-                    <a href="@ViewBag.CurrentURL/@SP">
-                        @SP
-                    </a>
-                        <br />
+
+                    string EAP_URL = ViewBag.CurrentURI;
+
+    
+                   <a href="@ViewBag.CurrentURL/@SP">@SP  </a>  <br />
+
                 }
-            }
+                  <br />
+
+
+    
+}
 
         </div>
         <div id="footer">
