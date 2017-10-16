@@ -60,7 +60,6 @@ namespace RestfulEA.Controllers
                 ViewBag.SelectedSP = CleanURL[1];
                 ViewBag.ThingOfInterest = ThingOfInterest;
 
-
                 //GET THE PACKAGES INSIDE THE ROOT NODE
                 List<EA.Package> ListOfRootPackages = EA_Helper.GetListOfRootNodes(ThingOfInterest, m_Repository);
                 List<string> ListOfPackageAllData = new List<string>();
@@ -70,7 +69,6 @@ namespace RestfulEA.Controllers
                 {
                     ListOfPackageAllData.Add(PackageLoop.Name + "|" + PackageLoop.ObjectType + "|" + PackageLoop.PackageGUID);
                     ListOfPackageNameOnly.Add(PackageLoop.Name);
-
                 }
                 ViewBag.ListOfPackages = ListOfPackageAllData;
                 ViewBag.ListOfPackagesNames = ListOfPackageNameOnly;
@@ -92,7 +90,6 @@ namespace RestfulEA.Controllers
                 ViewBag.ThingOfInterest = ThingOfInterest;
 
                 string[] UrlArray = ThingOfInterest.Split('|');
-
 
                 string TOI_Name = UrlArray[0];
                 string TOI_Type = UrlArray[1];
