@@ -42,8 +42,12 @@ namespace RestfulEA.App_Start
 
                 }
 
-                catch
+                catch(Exception e)
                 {
+                    string message = e.Message;
+
+
+
 
                 }
 
