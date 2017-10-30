@@ -139,6 +139,7 @@
     <Content Include="scripts\ai.0.22.9-build00167.min.js" />
     <Content Include="scripts\bootstrap.js" />
     <Content Include="scripts\bootstrap.min.js" />
+    <None Include="Properties\PublishProfiles\RESTEA.pubxml" />
     <None Include="scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="scripts\jquery-1.10.2.js" />
     <Content Include="scripts\jquery-1.10.2.min.js" />
@@ -155,6 +156,7 @@
     </Compile>
     <Compile Include="Models\EA_Diagram.cs" />
     <Compile Include="Models\EA_Helper.cs" />
+    <Compile Include="Models\EA_JsonBuilder.cs" />
     <Compile Include="Models\EA_TaggedValue.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

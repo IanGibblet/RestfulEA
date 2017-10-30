@@ -45,7 +45,19 @@ namespace RestfulEA.Controllers
                 List<string> ListOfSPs = new List<string>();
                 ViewBag.ListOfSPs = GetListOfSPs();
                 ViewBag.CurrentURL = "SPC";
+
+                string header = Request.Headers.Get("Accept");
+                if (header.Contains("json"))
+                {
+                
+                    var json = new JavaScriptSerializer().Serialize(ViewBag.ListOfSPs);
+                    // return Json(MyEle, JsonRequestBehavior.AllowGet);
+                    return Json(json, JsonRequestBehavior.AllowGet);
+                }
+
                 return View("EA_Projects");
+
+
             }
 
             //If we have a two, then we have just picked the SP.
