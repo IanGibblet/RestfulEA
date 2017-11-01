@@ -26,6 +26,9 @@ namespace RestfulEA.Controllers
             //parse the URL
             var VallueArray = url.Split('/');
 
+            //We'll look into the header to decide if we need to return somthing different for JSON
+            string header = Request.Headers.Get("Accept");
+
             //Clean emptycells
             string[] CleanURL = VallueArray.Where(x => !string.IsNullOrEmpty(x)).ToArray();
 
@@ -39,26 +42,45 @@ namespace RestfulEA.Controllers
                 { return View(); }
             }
 
-            //if we have 1 or 2 parts to the url then we only want to show the SPs. i.e. each file
+
+            ///////////
+
+
+            var urlBuilder = new System.UriBuilder(Request.Url.AbsoluteUri)
+               {
+               Path = Url.Action("ParseURL", "RESTEA"),
+               Query = null,
+               };
+
+            Uri uri = urlBuilder.Uri;
+            string WholeURL = urlBuilder.ToString();
+
+
+
+            ///////////////
+
+            //**1** - GET THE SP CATALOG
+
+
             if (CleanURL.Count() == 1)
             {
                 List<string> ListOfSPs = new List<string>();
                 ViewBag.ListOfSPs = GetListOfSPs();
                 ViewBag.CurrentURL = "SPC";
 
-                string header = Request.Headers.Get("Accept");
+
+                //If Json is requiered, that is sorted here
                 if (header.Contains("json"))
-                {
-                
-                    var json = new JavaScriptSerializer().Serialize(ViewBag.ListOfSPs);
-                    // return Json(MyEle, JsonRequestBehavior.AllowGet);
-                    return Json(json, JsonRequestBehavior.AllowGet);
+                {              
+                    JObject JObjectToReturn = EA_JsonBuilder.JsonCreateSPCList(WholeURL, GetListOfSPs());     
+                    return Content(JObjectToReturn.ToString(), "application/json");
                 }
 
                 return View("EA_Projects");
 
 
             }
+            //**2** - GET THE SP SERVICES
 
             //If we have a two, then we have just picked the SP.
             //and now we are showing the root packages
@@ -87,10 +109,19 @@ namespace RestfulEA.Controllers
 
 
 
-                return View("EA_Resources");
+                if (header.Contains("json"))
+                {
+                    JObject JObjectToReturn = EA_JsonBuilder.JsonCreateServices(WholeURL + "/" + CleanURL[1], ListOfPackageAllData);
+                    return Content(JObjectToReturn.ToString(), "application/json");
+                }
+
+
+                    return View("EA_Resources");
             }
 
-            //This means we are now looking for a "thing" inside the the EA repository
+           
+            //**3** - GET A THING INSIDE THE EA REPO
+
             else if (CleanURL.Count() == 3)
             {
                 string ThingOfInterest = CleanURL[CleanURL.Count() - 1];
@@ -113,6 +144,8 @@ namespace RestfulEA.Controllers
 
 
                 //If we have a package, show the details of the package and everything inside.
+
+                //**3A** - GET A PACKAGE IN THE REPO
                 if (TOI_Type == "otPackage")
                 {
                     //Package type is returned as otPackage but in EA it's package
@@ -124,12 +157,9 @@ namespace RestfulEA.Controllers
                     List<string> ListOfDiagrams = new List<string>();
                     List<string> ListOfElements = new List<string>();
 
-
                     List<string> ListOfPackagesNames = new List<string>();
                     List<string> ListOfDiagramsNames = new List<string>();
                     List<string> ListOfElementsNames = new List<string>();
-
-
 
                     //Stick the diagrams and packages into string lists
                     foreach (EA.Diagram DiagramLoop in PackageToShow.Diagrams)
@@ -159,16 +189,21 @@ namespace RestfulEA.Controllers
                     ViewBag.ListOfElementsNames = ListOfElementsNames;
 
                     //determine if the user wants HTML OR JSON
-                    string header = Request.Headers.Get("Accept");
+                    //string header = Request.Headers.Get("Accept");
                     if (header.Contains("html"))
                     { return View("EA_Resources"); }
 
                     if (header.Contains("json"))
-                    { return Json(PackageToShow, JsonRequestBehavior.AllowGet); }
+                    {
+
+                        JObject JObjectToReturn = EA_JsonBuilder.JsonCreatePackage(WholeURL + "/" + CleanURL[1], ListOfPackages, ListOfDiagrams, ListOfElements);
+                        return Content(JObjectToReturn.ToString(), "application/json");
+                  
+                    }
 
                 }
 
-
+                //**3B** - GET A DIAGRAM FROM THE REPO
                 if (TOI_Type == "otDiagram")
                 {
                     List<string> ListOfElements = new List<string>();
@@ -180,9 +215,6 @@ namespace RestfulEA.Controllers
                     EA_Json_Diagram.DiagramType = DiagramToShow.Type;
                     EA_Json_Diagram.DiagramGUID = DiagramToShow.DiagramGUID;
                        
-
-
-
                     ViewBag.CurrentURL += "/" + DiagramToShow.Name + "|" + TOI_Type + "|" + DiagramToShow.DiagramGUID;
                     ViewBag.DiagramName = DiagramToShow.Name;
 
@@ -196,20 +228,12 @@ namespace RestfulEA.Controllers
 
                         //Now add stuff for jsonobject
                         EA_Json_Diagram.ElementDictionary.Add(MyEle.Name, MyEle.Type);
-
-
                     }
                     ViewBag.ListOfElements = ListOfElements;
                     ViewBag.ListOfElementsNames = ListOfElementsNames;
 
-
-
-                    //determine if the user wants HTML OR JSON
-                    string header = Request.Headers.Get("Accept");
-
                     if(header == null)
                     {return new HttpStatusCodeResult(406, "header string is null");}
-
 
                     if (header.Contains("html"))
                     { return View("EA_ShowDiagram"); }
@@ -242,7 +266,7 @@ namespace RestfulEA.Controllers
 
                 }
 
-
+                //**3C** - GET AN ELEMENT FROM THE REPO
                 if (TOI_Type == "otElement")
                 {
 
@@ -306,7 +330,7 @@ namespace RestfulEA.Controllers
 
 
                     //determine if the user wants HTML OR JSON
-                    string header = Request.Headers.Get("Accept");
+                    //string header = Request.Headers.Get("Accept");
                     if (header.Contains("html"))
                     { return View("EA_ShowElement"); }
                     if (header.Contains("json"))
@@ -319,6 +343,7 @@ namespace RestfulEA.Controllers
                 }
 
 
+                //**3D** - GET A TAGGED VALUE FROM THE REPO
                 if (TOI_Type == "otTaggedValue")
                 {
                     //There is no native EA tagged value object
@@ -352,7 +377,7 @@ namespace RestfulEA.Controllers
                     ViewBag.TG_Store = myTVS;
 
 
-                    string header = Request.Headers.Get("Accept");
+                   // string header = Request.Headers.Get("Accept");
                     if (header.Contains("html"))
                     { return View("EA_ShowTaggedValues"); }
                     if (header.Contains("json"))
@@ -361,7 +386,7 @@ namespace RestfulEA.Controllers
                         var json = new JavaScriptSerializer().Serialize(myTVS);
                        //  return Json(MyEle, JsonRequestBehavior.AllowGet);
                           return Json(json, JsonRequestBehavior.AllowGet);
-
+                       
 
 
                     }
