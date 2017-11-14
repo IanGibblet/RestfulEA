@@ -75,14 +75,14 @@ namespace RestfulEA.Models
 
             foreach (String S in listOfDiagrams)
             {
-                DiagramsArrayHolder.Add(WholeURL + "/" + S);
+                DiagramArray.Add(WholeURL + "/" + S);
             }
             DiagramsArrayHolder["Diagram Array"] = DiagramArray;
 
 
             foreach (String S in listOfElements)
             {
-                ElementsArrayHolder.Add(WholeURL + "/" + S);
+                ElementArray.Add(WholeURL + "/" + S);
             }
             ElementsArrayHolder["Element Array"] = ElementArray;
 
@@ -98,6 +98,82 @@ namespace RestfulEA.Models
 
 
             throw new NotImplementedException();
+        }
+
+
+        static public JObject JsonCreateDiagram(string WholeURL, List<string> listOfElements, Dictionary<string,string> DiagramDictionary)
+        {
+            JObject TopObject = new JObject();
+            JObject ElementsArrayHolder = new JObject();
+            JArray ElementArray = new JArray();
+
+            foreach (String S in listOfElements)
+            {
+                ElementArray.Add(WholeURL + "/" + S);
+            }
+            ElementsArrayHolder["Element Array"] = ElementArray;
+
+        
+
+            foreach (KeyValuePair<string, string> entry in DiagramDictionary)
+            {
+                TopObject.Add(entry.Key, entry.Value);           
+            }
+
+                TopObject["Elements"] = ElementsArrayHolder;
+                return TopObject;
+
+        }
+
+        public static JObject JsonCreateElement(string BaseURI, Dictionary<string,string> ElementDictionary , EA_TaggedValueStore TaggedValueStore, List<string> listOfDiagrams)
+        {
+            JObject TopObject = new JObject();
+            JObject DiagramsArrayHolder = new JObject();
+            JArray DiagramArray = new JArray();
+
+
+            foreach (KeyValuePair<string, string> entry in ElementDictionary)
+            {
+                TopObject.Add(entry.Key, entry.Value);           
+            }
+
+
+            //If we have more than one tagged value then put a link to show them.
+            if(TaggedValueStore.TaggedDictionary.Count > 0)
+            {
+                TopObject.Add("Tagged Values", BaseURI + "/" + TaggedValueStore.ParentElementName + "|otTaggedValue|" + TaggedValueStore.ParentElementGUID);
+            }
+            return TopObject;
+        }
+
+
+        internal static JObject JsonCreateTaggedValues(EA_TaggedValueStore myTVS)
+        {
+            JObject TopObject = new JObject();
+
+            TopObject.Add("Name Of container element", myTVS.ParentElementName);
+            TopObject.Add("Container element GUID", myTVS.ParentElementGUID);
+       
+            JObject TaggedvAluesArrayHolder = new JObject();
+            JArray TaggedValueArray = new JArray();    
+
+            foreach (KeyValuePair<string, string> entry in myTVS.TaggedDictionary)
+            {
+             //   TopObject.Add(entry.Key, entry.Value);
+                TaggedValueArray.Add(entry.Key + "-" + entry.Value);
+            }
+
+            if (myTVS.TaggedDictionary.Count > 0)
+            {
+                TopObject["TaggedValues"] = TaggedValueArray;
+            }
+
+
+
+            return TopObject;
+
+
+            
         }
     }
 

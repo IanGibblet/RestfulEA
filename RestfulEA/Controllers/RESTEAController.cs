@@ -59,9 +59,7 @@ namespace RestfulEA.Controllers
 
             ///////////////
 
-            //**1** - GET THE SP CATALOG
-
-
+            //**1** - GET THE SP CATALO
             if (CleanURL.Count() == 1)
             {
                 List<string> ListOfSPs = new List<string>();
@@ -107,15 +105,11 @@ namespace RestfulEA.Controllers
                 ViewBag.ListOfPackages = ListOfPackageAllData;
                 ViewBag.ListOfPackagesNames = ListOfPackageNameOnly;
 
-
-
                 if (header.Contains("json"))
                 {
                     JObject JObjectToReturn = EA_JsonBuilder.JsonCreateServices(WholeURL + "/" + CleanURL[1], ListOfPackageAllData);
                     return Content(JObjectToReturn.ToString(), "application/json");
                 }
-
-
                     return View("EA_Resources");
             }
 
@@ -210,6 +204,9 @@ namespace RestfulEA.Controllers
                     List<string> ListOfElementsNames = new List<string>();
                     EA.Diagram DiagramToShow = (EA.Diagram)m_Repository.GetDiagramByGuid(TOI_GUID);
 
+                    string DiagramURL = WholeURL + "/" + CleanURL[1] + "/" + CleanURL[2];
+                    string ProjectURL = WholeURL + "/" + CleanURL[1];
+
                     EA_Diagram EA_Json_Diagram = new Models.EA_Diagram();
                     EA_Json_Diagram.DiagramName = DiagramToShow.Name;
                     EA_Json_Diagram.DiagramType = DiagramToShow.Type;
@@ -226,8 +223,8 @@ namespace RestfulEA.Controllers
                         ListOfElements.Add(MyEle.Name + "|" + MyEle.ObjectType + "|" + MyEle.ElementGUID);
                         ListOfElementsNames.Add(MyEle.Name);
 
-                        //Now add stuff for jsonobject
                         EA_Json_Diagram.ElementDictionary.Add(MyEle.Name, MyEle.Type);
+
                     }
                     ViewBag.ListOfElements = ListOfElements;
                     ViewBag.ListOfElementsNames = ListOfElementsNames;
@@ -239,30 +236,20 @@ namespace RestfulEA.Controllers
                     { return View("EA_ShowDiagram"); }
 
                     if (header.Contains("json"))
-                    {
-                        //This just returned {}
-                        // return Json(DiagramToShow, JsonRequestBehavior.AllowGet);
+                    {                                             
+                        Dictionary<string, string> DiagramDictionary = new Dictionary<string, string>();
+                        DiagramDictionary.Add("Diagram Name", DiagramToShow.Name);
+                        DiagramDictionary.Add("Created Data", DiagramToShow.CreatedDate.ToString());
+                        DiagramDictionary.Add("Meta Type", DiagramToShow.MetaType);
+                        DiagramDictionary.Add("Notes", DiagramToShow.Notes);                    
+                        DiagramDictionary.Add("Package ID", DiagramToShow.PackageID.ToString());
+                        DiagramDictionary.Add("Big Preview", DiagramURL + "/BigPreview");
+                        DiagramDictionary.Add("Small Preview", DiagramURL + "/SmallPreview");
 
-
-                        DataContractJsonSerializer js = new DataContractJsonSerializer(typeof(EA_Diagram));
-                        MemoryStream msObj = new MemoryStream();
-
-                        js.WriteObject(msObj, EA_Json_Diagram);
-                        msObj.Position = 0;
-                        StreamReader sr = new StreamReader(msObj);
-                        string jsonToReturn = sr.ReadToEnd();
-
-                        dynamic dynobject = JObject.Parse(jsonToReturn);
-
-                        sr.Close();
-                        msObj.Close();
-
-                        return Json(jsonToReturn, JsonRequestBehavior.AllowGet);
-
+                        JObject JObjectToReturn = EA_JsonBuilder.JsonCreateDiagram(ProjectURL, ListOfElements, DiagramDictionary);
+                        return Content(JObjectToReturn.ToString(), "application/json");
 
                     }
-
-
 
                 }
 
@@ -271,16 +258,11 @@ namespace RestfulEA.Controllers
                 {
 
                     EA.Element MyEle = (EA.Element)m_Repository.GetElementByGuid(TOI_GUID);
-
                     ViewBag.Author = MyEle.Author;
-
                     ViewBag.ElementName = MyEle.Name;
                     ViewBag.notes = MyEle.Notes;
 
-                //    List<string> ListOfTagValueNames = new List<string>();
                     List<string> ListOfDiagramsNames = new List<string>();
-
-                //    List<string> ListOfTagValueValues = new List<string>();
                     List<string> ListOfDiagrams = new List<string>();
 
                     RestfulEA.Models.EA_TaggedValueStore myTVS = new Models.EA_TaggedValueStore();
@@ -288,7 +270,7 @@ namespace RestfulEA.Controllers
                     myTVS.ParentElementGUID = MyEle.ElementGUID;
 
                     //Add the tagged values in
-                   for (short i = 0; i < MyEle.TaggedValues.Count; i++)
+                    for (short i = 0; i < MyEle.TaggedValues.Count; i++)
                     {
                         EA.TaggedValue TagValue = (EA.TaggedValue)MyEle.TaggedValues.GetAt(i);
                         
@@ -297,48 +279,40 @@ namespace RestfulEA.Controllers
                         {
                             myTVS.TaggedDictionary.Add(TagValue.Name, TagValue.Value);
                         }
-
-
-                      
+                
                    }
-
                     ViewBag.TG_Store = myTVS;
-
-
-
-
-
-              //      ViewBag.ListOfTagValueNames = ListOfTagValueNames;
-              //     ViewBag.ListOfTagValueValues = ListOfTagValueValues;
-
-                    //Add the diagrams in. (because an element can contain a diagram.
-
-
-
 
                     foreach (EA.Diagram DiagramLoop in MyEle.Diagrams)
                     {
                         ListOfDiagrams.Add(DiagramLoop.Name + "|" + DiagramLoop.ObjectType + "|" + DiagramLoop.DiagramGUID);
                         ListOfDiagramsNames.Add(DiagramLoop.Name);
                     }
-
                     ViewBag.TaggedSuffix = MyEle.Name + "|" + "otTaggedValue" + "|" + MyEle.ElementGUID; 
-
-
                     ViewBag.ListOfDiagramsNames = ListOfDiagramsNames;
                     ViewBag.ListOfDiagrams = ListOfDiagrams;
-
 
                     //determine if the user wants HTML OR JSON
                     //string header = Request.Headers.Get("Accept");
                     if (header.Contains("html"))
                     { return View("EA_ShowElement"); }
+                    //Store the element paramters that we want to see in the json
+                    Dictionary<string, string> ElementDictionary = new Dictionary<string, string>();
+                    ElementDictionary.Add("Name", MyEle.Name);
+                    ElementDictionary.Add("Author", MyEle.Author);
+                    ElementDictionary.Add("DateCreated", MyEle.Created.ToString());
+                    ElementDictionary.Add("Version", MyEle.Version);
+                    ElementDictionary.Add("Status", MyEle.Status);
+                    ElementDictionary.Add("Notes", MyEle.Notes);
+                    ElementDictionary.Add("GUID", MyEle.ElementGUID);
+
+
                     if (header.Contains("json"))
                     {
 
-                        var json = new JavaScriptSerializer().Serialize(MyEle);
-                        // return Json(MyEle, JsonRequestBehavior.AllowGet);
-                        return Json(json, JsonRequestBehavior.AllowGet);
+                        JObject JObjectToReturn = EA_JsonBuilder.JsonCreateElement(WholeURL + "/" + CleanURL[1],ElementDictionary, myTVS, ListOfDiagrams);
+                        return Content(JObjectToReturn.ToString(), "application/json");
+
                     }
                 }
 
@@ -349,16 +323,11 @@ namespace RestfulEA.Controllers
                     //There is no native EA tagged value object
                     //One was created for the purpose of this project.
                     //The GUID that comes with tagged value is actually the GUID of the parent element 
-
-
                    
                     EA.Element ParentElement = (EA.Element)m_Repository.GetElementByGuid(TOI_GUID);
-
                     RestfulEA.Models.EA_TaggedValueStore myTVS = new Models.EA_TaggedValueStore();
-
                     myTVS.ParentElementName = ParentElement.Name;
                     myTVS.ParentElementGUID = ParentElement.ElementGUID;
-
 
                     for (short i = 0; i < ParentElement.TaggedValues.Count; i++)
                     {
@@ -367,36 +336,23 @@ namespace RestfulEA.Controllers
                         if (myTVS.TaggedDictionary.ContainsKey(TagValue.Name) == false)
                         {
                              myTVS.TaggedDictionary.Add(TagValue.Name, TagValue.Value);
-                        }
-
-
-                           
+                        }                           
                     }
 
-
                     ViewBag.TG_Store = myTVS;
-
 
                    // string header = Request.Headers.Get("Accept");
                     if (header.Contains("html"))
                     { return View("EA_ShowTaggedValues"); }
                     if (header.Contains("json"))
                     {
-
-                        var json = new JavaScriptSerializer().Serialize(myTVS);
-                       //  return Json(MyEle, JsonRequestBehavior.AllowGet);
-                          return Json(json, JsonRequestBehavior.AllowGet);
-                       
-
+                        JObject JObjectToReturn = EA_JsonBuilder.JsonCreateTaggedValues(myTVS);
+                        return Content(JObjectToReturn.ToString(), "application/json");
 
                     }
 
-
-
                 }
-
-
-                return View("");
+                return View("Error, no suitable MVC view was found");
             }
 
 
@@ -439,10 +395,10 @@ namespace RestfulEA.Controllers
 
 
 
-                List<string> ListOfElementsTypes = new List<string>();
-                List<string> ListOfElementsNames = new List<string>();
-                List<string> ListOfElementAuthor = new List<string>();
-             List<string> ListOfElementSteroType = new List<string>();
+                 List<string> ListOfElementsTypes = new List<string>();
+                 List<string> ListOfElementsNames = new List<string>();
+                 List<string> ListOfElementAuthor = new List<string>();
+                 List<string> ListOfElementSteroType = new List<string>();
                  List<string> ListOfElementNotes = new List<string>();
 
                 EA.Diagram DiagramToShow = (EA.Diagram)m_Repository.GetDiagramByGuid(TOI_GUID);
@@ -459,13 +415,10 @@ namespace RestfulEA.Controllers
                     ListOfElementsNames.Add(MyEle.Name);
                     ListOfElementsTypes.Add(MyEle.Type);
                     ListOfElementAuthor.Add(MyEle.Author);
-                 ListOfElementSteroType.Add(MyEle.Stereotype);
-                     ListOfElementNotes.Add(MyEle.Notes);
-                
-                  
-
+                    ListOfElementSteroType.Add(MyEle.Stereotype);
+                    ListOfElementNotes.Add(MyEle.Notes);
+   
                 }
-
 
                 ViewBag.ListOfElementsTypes = ListOfElementsTypes;
                 ViewBag.ListOfElementsNames = ListOfElementsNames;
@@ -475,11 +428,6 @@ namespace RestfulEA.Controllers
 
             return View("EA_small_preview");
             
-
-
-
-
-
         }
 
             
@@ -535,7 +483,6 @@ namespace RestfulEA.Controllers
         }
 
 
-      
 
         private List<string> GetListOfSPs()
         {
@@ -586,7 +533,7 @@ namespace RestfulEA.Controllers
             return null;
         }
 
-
+    
 
     }
 }
