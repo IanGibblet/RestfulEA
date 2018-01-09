@@ -37,8 +37,8 @@
             </a>
 
 
-
-
+        
+             
 
 
             <br />
@@ -46,11 +46,9 @@
             <b>Elements</b>
 
 
-
+            @*Show all the elements*@
             @if (ViewBag.ListOfElements != null)
-            {
-              
-
+            {     
                 for (int i = 0; i < ViewBag.ListOfElements.Count; i++)
                 {
                     List<string> LocalListElements = new List<string>();
@@ -69,7 +67,38 @@
                 }
             }
 
-           
+
+            <br />
+            <br />
+
+            <b>Links </b>
+ 
+
+            @*Show all of the links*@
+            @if (ViewBag.ListOfLinkURLs != null)
+            {
+
+                for (int i = 0; i < ViewBag.ListOfLinkURLs.Count; i++)
+                {
+                    List<string> LocalListLinks = new List<string>();
+                    LocalListLinks = ViewBag.ListOfLinkURLs;
+                    string AllLinkData = LocalListLinks.ElementAt(i);
+
+                    List<string> LocalListOfLinkNames = new List<string>();
+                    LocalListOfLinkNames = ViewBag.ListOfLinkNames;
+
+                    string LinkNameOnly = LocalListOfLinkNames.ElementAt(i);
+
+                    <br />
+
+                    <a href="@ViewBag.URL_Prefix/@AllLinkData">
+                        @LinkNameOnly
+                    </a>
+                }
+
+
+
+            }
 
         </div>
 

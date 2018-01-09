@@ -101,11 +101,13 @@ namespace RestfulEA.Models
         }
 
 
-        static public JObject JsonCreateDiagram(string WholeURL, List<string> listOfElements, Dictionary<string,string> DiagramDictionary)
+        static public JObject JsonCreateDiagram(string WholeURL, List<string> listOfElements, Dictionary<string,string> DiagramDictionary,List<string>ListOfLinks)
         {
             JObject TopObject = new JObject();
             JObject ElementsArrayHolder = new JObject();
             JArray ElementArray = new JArray();
+            JArray LinkArrary = new JArray();
+
 
             foreach (String S in listOfElements)
             {
@@ -113,6 +115,11 @@ namespace RestfulEA.Models
             }
             ElementsArrayHolder["Element Array"] = ElementArray;
 
+            foreach (String S in ListOfLinks)
+            {
+                LinkArrary.Add(WholeURL + "/" + S);
+            }
+            ElementsArrayHolder["Link Array"] = LinkArrary;
         
 
             foreach (KeyValuePair<string, string> entry in DiagramDictionary)
@@ -125,26 +132,44 @@ namespace RestfulEA.Models
 
         }
 
-        public static JObject JsonCreateElement(string BaseURI, Dictionary<string,string> ElementDictionary , EA_TaggedValueStore TaggedValueStore, List<string> listOfDiagrams)
+
+        //Creates the JObject which is used to create the JSON for an EA element
+        public static JObject JsonCreateElement(string BaseURI, 
+                                                Dictionary<string,string> ElementDictionary ,
+                                                EA_TaggedValueStore TaggedValueStore, 
+                                                List<string> listOfDiagrams)
         {
             JObject TopObject = new JObject();
             JObject DiagramsArrayHolder = new JObject();
             JArray DiagramArray = new JArray();
-
-
             foreach (KeyValuePair<string, string> entry in ElementDictionary)
             {
                 TopObject.Add(entry.Key, entry.Value);           
             }
-
-
-            //If we have more than one tagged value then put a link to show them.
+           //If we have more than one tagged value then put a link to show them.
             if(TaggedValueStore.TaggedDictionary.Count > 0)
             {
                 TopObject.Add("Tagged Values", BaseURI + "/" + TaggedValueStore.ParentElementName + "|otTaggedValue|" + TaggedValueStore.ParentElementGUID);
-            }
+            }    
             return TopObject;
         }
+ 
+
+        public static JObject JsonCreateConnector(string WholeURL, Dictionary<string, string> ConnectorDictionary)
+        {
+            JObject TopObject = new JObject();
+
+            TopObject.Add("Connector URL", WholeURL);
+
+            foreach (KeyValuePair<string, string> entry in ConnectorDictionary)
+            {
+                TopObject.Add(entry.Key, entry.Value);
+            }
+
+            return TopObject;
+
+        }
+
 
 
         internal static JObject JsonCreateTaggedValues(EA_TaggedValueStore myTVS)

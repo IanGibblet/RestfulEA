@@ -200,8 +200,15 @@ namespace RestfulEA.Controllers
                 //**3B** - GET A DIAGRAM FROM THE REPO
                 if (TOI_Type == "otDiagram")
                 {
-                    List<string> ListOfElements = new List<string>();
+                    //Get the elements for for viewbag
+                    List<string> ListOfElementURLs = new List<string>();      //Use this for the webserivces URL (name|type|GUID)
                     List<string> ListOfElementsNames = new List<string>();
+
+                    //Get the links for the viewbag
+                    List<string> ListOfLinkURLs = new List<string>();        //Use this for the webserivces URL (name|type|GUID)
+                    List<string> ListOfLinksName = new List<string>();           
+
+
                     EA.Diagram DiagramToShow = (EA.Diagram)m_Repository.GetDiagramByGuid(TOI_GUID);
 
                     string DiagramURL = WholeURL + "/" + CleanURL[1] + "/" + CleanURL[2];
@@ -215,19 +222,44 @@ namespace RestfulEA.Controllers
                     ViewBag.CurrentURL += "/" + DiagramToShow.Name + "|" + TOI_Type + "|" + DiagramToShow.DiagramGUID;
                     ViewBag.DiagramName = DiagramToShow.Name;
 
+
+                    //A diagram is made of links and elements.
+                    //This next bit gets the links....
+                    for (short iDO = 0; iDO < DiagramToShow.DiagramLinks.Count; iDO++)
+                    {
+
+                        EA.DiagramLink MyLink = (EA.DiagramLink)DiagramToShow.DiagramLinks.GetAt(iDO);
+                        int ID = m_Repository.GetConnectorByID(MyLink.ConnectorID).ConnectorID;
+
+                        EA.Connector con;                    
+
+                        try //Try and get the connector object from the repository
+                        {
+                            con = (EA.Connector)m_Repository.GetConnectorByID(ID);
+                            ListOfLinkURLs.Add(con.Name + "|" + con.ObjectType + "|" + con.ConnectorGUID);
+                            ListOfLinksName.Add(con.Name);
+                        }
+                        catch{}
+
+
+                    }
+ 
+                    //..this next bit gets the diagram objects.
                     for (short iDO = 0; iDO < DiagramToShow.DiagramObjects.Count; iDO++)
                     {
                         EA.DiagramObject MyDO = (EA.DiagramObject)DiagramToShow.DiagramObjects.GetAt(iDO);
                         int ID = m_Repository.GetElementByID(MyDO.ElementID).ElementID;
                         EA.Element MyEle = (EA.Element)m_Repository.GetElementByID(ID);
-                        ListOfElements.Add(MyEle.Name + "|" + MyEle.ObjectType + "|" + MyEle.ElementGUID);
+                        ListOfElementURLs.Add(MyEle.Name + "|" + MyEle.ObjectType + "|" + MyEle.ElementGUID);
                         ListOfElementsNames.Add(MyEle.Name);
-
                         EA_Json_Diagram.ElementDictionary.Add(MyEle.Name, MyEle.Type);
 
                     }
-                    ViewBag.ListOfElements = ListOfElements;
+                    ViewBag.ListOfElements = ListOfElementURLs;
                     ViewBag.ListOfElementsNames = ListOfElementsNames;
+
+                    ViewBag.ListOfLinkURLs  = ListOfLinkURLs;
+                    ViewBag.ListOfLinkNames = ListOfLinksName;
 
                     if(header == null)
                     {return new HttpStatusCodeResult(406, "header string is null");}
@@ -246,7 +278,7 @@ namespace RestfulEA.Controllers
                         DiagramDictionary.Add("Big Preview", DiagramURL + "/BigPreview");
                         DiagramDictionary.Add("Small Preview", DiagramURL + "/SmallPreview");
 
-                        JObject JObjectToReturn = EA_JsonBuilder.JsonCreateDiagram(ProjectURL, ListOfElements, DiagramDictionary);
+                        JObject JObjectToReturn = EA_JsonBuilder.JsonCreateDiagram(ProjectURL, ListOfElementURLs, DiagramDictionary,ListOfLinkURLs);
                         return Content(JObjectToReturn.ToString(), "application/json");
 
                     }
@@ -264,10 +296,31 @@ namespace RestfulEA.Controllers
 
                     List<string> ListOfDiagramsNames = new List<string>();
                     List<string> ListOfDiagrams = new List<string>();
+                    List<string> ListOfConnectors = new List<string>();
+                    List<string> ListOfConnectorNames = new List<string>();
 
                     RestfulEA.Models.EA_TaggedValueStore myTVS = new Models.EA_TaggedValueStore();
                     myTVS.ParentElementName = MyEle.Name;
                     myTVS.ParentElementGUID = MyEle.ElementGUID;
+
+
+                    foreach (EA.Connector MyConnector in MyEle.Connectors)
+                    {
+
+                        string GUID = MyConnector.ConnectorGUID;
+                        string Name = MyConnector.Name;
+                        string Type = MyConnector.ObjectType.ToString();
+
+
+                        ListOfConnectorNames.Add(Name);
+                        ListOfConnectors.Add(Name + "|otConnector|" + GUID);
+
+
+                    
+                    }
+
+
+
 
                     //Add the tagged values in
                     for (short i = 0; i < MyEle.TaggedValues.Count; i++)
@@ -282,7 +335,6 @@ namespace RestfulEA.Controllers
                 
                    }
                     ViewBag.TG_Store = myTVS;
-
                     foreach (EA.Diagram DiagramLoop in MyEle.Diagrams)
                     {
                         ListOfDiagrams.Add(DiagramLoop.Name + "|" + DiagramLoop.ObjectType + "|" + DiagramLoop.DiagramGUID);
@@ -291,6 +343,10 @@ namespace RestfulEA.Controllers
                     ViewBag.TaggedSuffix = MyEle.Name + "|" + "otTaggedValue" + "|" + MyEle.ElementGUID; 
                     ViewBag.ListOfDiagramsNames = ListOfDiagramsNames;
                     ViewBag.ListOfDiagrams = ListOfDiagrams;
+
+
+                    ViewBag.ListOfConnectors = ListOfConnectors;
+                    ViewBag.ListOfConnectorNames = ListOfConnectorNames;
 
                     //determine if the user wants HTML OR JSON
                     //string header = Request.Headers.Get("Accept");
@@ -305,6 +361,20 @@ namespace RestfulEA.Controllers
                     ElementDictionary.Add("Status", MyEle.Status);
                     ElementDictionary.Add("Notes", MyEle.Notes);
                     ElementDictionary.Add("GUID", MyEle.ElementGUID);
+
+                    //Connectors
+                    foreach (EA.Connector MyCon in MyEle.Connectors)
+                    {
+                      //  ListOfConnectors.Add(MyCon.Name + "|otConnector|" + MyCon.ConnectorGUID);
+                     //   ListOfConnectorNames.Add(MyCon.Name);
+
+                        string ConnectorURL = MyCon.Name + "|otConnector|" + MyCon.ConnectorGUID;
+                     
+                        ElementDictionary.Add("Connector:" + MyCon.Name, uri + "\\" + ConnectorURL);
+
+                    }
+
+
 
 
                     if (header.Contains("json"))
@@ -348,17 +418,48 @@ namespace RestfulEA.Controllers
                     {
                         JObject JObjectToReturn = EA_JsonBuilder.JsonCreateTaggedValues(myTVS);
                         return Content(JObjectToReturn.ToString(), "application/json");
-
                     }
 
                 }
+
+                //**3E** - GET A CONNECTOR FROM THE REPO
+                if (TOI_Type == "otConnector")
+                {
+                    //  EA.Diagram DiagramToShow = (EA.Diagram)m_Repository.GetDiagramByGuid(TOI_GUID);
+                    Dictionary<string, string> ConnectorDictionary = new Dictionary<string, string>();
+                    EA.Connector MyLink = (EA.Connector)m_Repository.GetConnectorByGuid(TOI_GUID);
+                    ViewBag.TOI_Name = TOI_Name;
+                    ViewBag.TOI_Type = TOI_Type;
+                    ViewBag.TOI_GUID = TOI_GUID;
+                    ViewBag.Alias = MyLink.Alias;
+                    ViewBag.Colour = MyLink.Color;
+                    ViewBag.Direction = MyLink.Direction;
+                    ViewBag.Notes = MyLink.Notes;
+                    ViewBag.Type = MyLink.Type;
+                    ViewBag.ConnectorID = MyLink.ConnectorID;
+
+                    ConnectorDictionary.Add("Name", TOI_Name);
+                    ConnectorDictionary.Add("Type", TOI_Type);
+                    ConnectorDictionary.Add("GUID", TOI_GUID);
+                    ConnectorDictionary.Add("Alias", MyLink.Alias);
+                    ConnectorDictionary.Add("Colour", MyLink.Color.ToString());
+                    ConnectorDictionary.Add("Direction", MyLink.Notes);
+                    ConnectorDictionary.Add("Connector ID", MyLink.ConnectorID.ToString());
+            
+                    if (header.Contains("html"))
+                    { return View("EA_ShowConnector"); }
+
+                    if (header.Contains("json"))
+                    {                 
+                        JObject JObjectToReturn = EA_JsonBuilder.JsonCreateConnector(WholeURL + "/" + CleanURL[1],ConnectorDictionary);
+                        return Content(JObjectToReturn.ToString(), "application/json");
+                    }
+                }
+
                 return View("Error, no suitable MVC view was found");
             }
-
-
             return null;
         }
-
         
         public ActionResult OSLC_SmallPreview()
         {

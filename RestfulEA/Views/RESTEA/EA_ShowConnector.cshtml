@@ -1,0 +1,50 @@
+﻿
+@{
+    ViewBag.Title = "Show Connector";
+}
+
+<!DOCTYPE html>
+
+<head>
+    <title>EA Webservice </title>
+    <link rel="stylesheet" type="text/css" href="~/Content/Styles_EA2.css" />
+</head>
+
+<body>
+
+    <div id="container">
+        <div id="header">
+            <h2> Contents of @ViewBag.TOI_Name  ( @ViewBag.TOI_Type )  ;</h2>
+        </div>
+
+
+        <div id="content">
+
+    
+            <b>Connector Name</b> @ViewBag.TOI_Name;
+            <br />
+            <br />
+
+
+
+
+            <b>Object Type: </b> @ViewBag.TOI_Type;<br />
+            <b>GUID: </b> @ViewBag.TOI_GUID;<br />
+            <b>Alias: </b> @ViewBag.Alias;<br />
+            <b>Colour: </b> @ViewBag.Color;<br />
+            <b>Direction: </b> @ViewBag.Direction;<br />
+            <b>Notes: </b> @ViewBag.Notes;<br />
+            <b>Connector Type: </b> @ViewBag.Type;<br />
+            <b>Connector ID </b> @ViewBag.ConnectorID;<br />
+      
+
+        </div>
+
+        <br />
+
+
+        <div id="footer">
+            Webservice for Enterprise Architect
+        </div>
+    </div>
+</body>

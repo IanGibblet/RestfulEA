@@ -46,37 +46,45 @@
                     <a href="@ViewBag.URL_Prefix/@ViewBag.TaggedSuffix">
                         Show Tagged Values
                     </a>
-
-                    <br /><br />
-
-            
+                    <br /><br />      
                 RestfulEA.Models.EA_TaggedValueStore TG_Store = new RestfulEA.Models.EA_TaggedValueStore();
                 TG_Store = ViewBag.TG_Store;
-
-                
-
-
-                //   for (int i = 0; i < ViewBag.ListOfTagValueNames.Count; i++)
-                //   {
-                //        List<string> LocalListTaggedValueNames = new List<string>();
-                //        LocalListTaggedValueNames = ViewBag.ListOfTagValueNames;
-
-                //       List<string> LocalListTaggedValueValues = new List<string>();
-                //     LocalListTaggedValueValues = ViewBag.ListOfTagValueValues;
-
-
-                //        @LocalListTaggedValueNames.ElementAt(i);
-                //       <text>  = </text>
-                //       @LocalListTaggedValueValues.ElementAt(i);
-                //       <br />
-                //    }
-
 
             }
 
 
+            @if (ViewBag.ListOfConnectors != null)
+            {
 
-      
+                List<string> LocalListConnectorNames = new List<string>();
+                LocalListConnectorNames = ViewBag.ListOfConnectors;
+
+                List<string> LocalListConnectors = new List<string>();
+                LocalListConnectors = ViewBag.ListOfConnectorNames;
+
+
+                if (LocalListConnectorNames.Count > 0)
+                {
+                    <b>Connectors associated with @ViewBag.TOI_Name</b>
+                }
+
+                for (int i = 0; i < LocalListConnectorNames.Count; i++)
+                {
+                    string ConnectorData = LocalListConnectors.ElementAt(i);
+                    string ConnectorName = LocalListConnectorNames.ElementAt(i);
+
+                    <br />
+
+                    <a href="@ViewBag.URL_Prefix/@ConnectorName">
+                                                @ConnectorData
+                        </a>
+
+
+
+
+                }
+            }
+
             @if (ViewBag.ListOfDiagramsNames != null)
             {
 
@@ -87,26 +95,20 @@
                 {
                     <b> Diagrams contained in @ViewBag.TOI_Name </b>
                 }
-
-
                 List<string> LocalListDiagram = new List<string>();
                 LocalListDiagram = ViewBag.ListOfDiagrams;
 
                 for (int i = 0; i < LocalListDiagramNames.Count; i++)
                 {
-
                     string DiagramData = LocalListDiagram.ElementAt(i);
                     string Diagramname = LocalListDiagramNames.ElementAt(i);
 
                     <br />
-                    <a href="@ViewBag.URL_Prefix/@DiagramData">
-                                                 @Diagramname
+                    <a href="@ViewBag.URL_Prefix/@Diagramname">
+                                                 @DiagramData
                                         </a>
                 }
-
-
             }
-
 
 
         </div>

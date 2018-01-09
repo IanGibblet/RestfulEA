@@ -36,7 +36,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <RegisterForComInterop>true</RegisterForComInterop>
+    <RegisterForComInterop>false</RegisterForComInterop>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -184,6 +184,7 @@
     <Content Include="Views\RESTEA\EA_ShowElement.cshtml" />
     <Content Include="Views\RESTEA\EA_small_preview.cshtml" />
     <Content Include="Views\RESTEA\EA_ShowTaggedValues.cshtml" />
+    <Content Include="Views\RESTEA\EA_ShowConnector.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

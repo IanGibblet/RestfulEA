@@ -15,7 +15,7 @@ namespace RestfulEA.Models
         //Use this to store name and type of element
         public Dictionary<string, String> ElementDictionary = new Dictionary<string, string>();
 
-
+        public Dictionary<string, string> LinkDictionary = new Dictionary<string, string>();
 
 
     }
