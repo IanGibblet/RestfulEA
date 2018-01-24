@@ -8,16 +8,112 @@ using System.Web.Script.Serialization;
 using System.Runtime.Serialization.Json;
 using System.IO;
 using Newtonsoft.Json.Linq;
+using RestfulEA.Models.BusinessLogic;
 
 namespace RestfulEA.Controllers
 {
     public class RESTEAController : Controller
     {
 
+        public ActionResult ServiceProviderCatalog()
+        {
+            
+            //Get the current list of EA repositories from the session variable
+            List<EA.Repository> MyListRepo = new List<EA.Repository>();
+            MyListRepo = HttpContext.Application["IanList"] as List<EA.Repository>;
+            EA_Data_Manipulator EDM = new EA_Data_Manipulator();
+
+            string WholeURL = EDM.GetWholeURL(Request, Url);
+
+            ViewBag.ListOfSPs = EDM.GetListOfSPs(MyListRepo);
+            ViewBag.CurrentURL = "SPC";
+
+            //We'll look into the header to decide if we need to return somthing different for JSON
+            string header = Request.Headers.Get("Accept");
+
+            //JSON
+            if (header.Contains("json"))
+            {
+                JObject JObjectToReturn = EA_JsonBuilder.JsonCreateSPCList(WholeURL, GetListOfSPs());
+                return Content(JObjectToReturn.ToString(), "application/json");
+            }
+            //HTML
+            if (header.Contains("html"))
+            {
+                return View("EA_Projects");
+            }
+
+            return null;
+        }
+
+
+
+        public ActionResult ServiceProviderTop()
+        {
+            //Get the current list of EA repositories from the session variable
+            List<EA.Repository> MyListRepo = new List<EA.Repository>();
+            MyListRepo = HttpContext.Application["IanList"] as List<EA.Repository>;
+            EA_Data_Manipulator EDM = new EA_Data_Manipulator();
+
+            string BaseURL = EDM.GetWholeURL(Request, Url);
+
+
+            //Get the URL that was posted.
+            var UrlAppended = this.Url.Action();
+            string UrlAppendage = UrlAppended.ToString();
+
+            //parse the URL
+            var VallueArray = UrlAppendage.Split('/');
+
+            //Clean emptycells
+            string[] CleanURL = VallueArray.Where(x => !string.IsNullOrEmpty(x)).ToArray();
+            
+            string ThingOfInterest = CleanURL[1];
+            EA.Repository m_Repository = new EA.Repository();  //store the current working repository
+            m_Repository = getEA_Repos(ThingOfInterest);
+
+
+            ViewBag.CurrentURL = BaseURL;
+            ViewBag.ThingOfInterest = ThingOfInterest;
+
+
+            List <string> ListOfPackagesWithData = EDM.GetListOfPackageWithData(ThingOfInterest, m_Repository);
+            //     List <string> ListOfPackagesNames = 
+
+            ViewBag.ListOfPackages = ListOfPackagesWithData; // ListOfPackageAllData;
+          //  ViewBag.ListOfPackagesNames = EDM.GetListOfPackageNameOnly(); // ListOfPackageNameOnly;
+
+
+            //We'll look into the header to decide if we need to return somthing different for JSON
+            string header = Request.Headers.Get("Accept");
+
+            if (header.Contains("json"))
+            {
+                JObject JObjectToReturn = EA_JsonBuilder.JsonCreateServices(BaseURL + "/" + CleanURL[1], ListOfPackagesWithData);
+                return Content(JObjectToReturn.ToString(), "application/json");
+            }
+
+            if (header.Contains("html"))
+            {
+                return View("EA_Resources");
+            }
+
+            return null;
+        }
+
+
+
+
+        /// <summary>
+        /// /////////////////////////////////////////////////
+        /// </summary>
+        /// <returns></returns>
 
         // GET: RESTEA
         public ActionResult ParseURL()
         {
+
+
 
             //Get the URL that was posted.
             var fullURL = this.Url.Action();
@@ -47,35 +143,35 @@ namespace RestfulEA.Controllers
 
 
             var urlBuilder = new System.UriBuilder(Request.Url.AbsoluteUri)
-               {
-               Path = Url.Action("ParseURL", "RESTEA"),
-               Query = null,
-               };
+            {
+                Path = Url.Action("ParseURL", "RESTEA"),
+                Query = null,
+            };
 
             Uri uri = urlBuilder.Uri;
             string WholeURL = urlBuilder.ToString();
 
 
 
+
             ///////////////
 
-            //**1** - GET THE SP CATALO
+            //**1** - GET THE SP CATALOG
             if (CleanURL.Count() == 1)
             {
-                List<string> ListOfSPs = new List<string>();
-                ViewBag.ListOfSPs = GetListOfSPs();
-                ViewBag.CurrentURL = "SPC";
+                //List<string> ListOfSPs = new List<string>();
+                //ViewBag.ListOfSPs = GetListOfSPs();
+                //ViewBag.CurrentURL = "SPC";
 
 
-                //If Json is requiered, that is sorted here
-                if (header.Contains("json"))
-                {              
-                    JObject JObjectToReturn = EA_JsonBuilder.JsonCreateSPCList(WholeURL, GetListOfSPs());     
-                    return Content(JObjectToReturn.ToString(), "application/json");
-                }
+                ////If Json is requiered, that is sorted here
+                //if (header.Contains("json"))
+                //{
+                //    JObject JObjectToReturn = EA_JsonBuilder.JsonCreateSPCList(WholeURL, GetListOfSPs());
+                //    return Content(JObjectToReturn.ToString(), "application/json");
+                //}
 
-                return View("EA_Projects");
-
+                //return View("EA_Projects");
 
             }
             //**2** - GET THE SP SERVICES
@@ -84,7 +180,7 @@ namespace RestfulEA.Controllers
             //and now we are showing the root packages
             else if (CleanURL.Count() == 2)
             {
-                List<string> StringListOfRoots = new List<string>();
+               // List<string> StringListOfRoots = new List<string>();
                 string ThingOfInterest = CleanURL[1];
                 m_Repository = getEA_Repos(ThingOfInterest);
 
@@ -110,10 +206,10 @@ namespace RestfulEA.Controllers
                     JObject JObjectToReturn = EA_JsonBuilder.JsonCreateServices(WholeURL + "/" + CleanURL[1], ListOfPackageAllData);
                     return Content(JObjectToReturn.ToString(), "application/json");
                 }
-                    return View("EA_Resources");
+                return View("EA_Resources");
             }
 
-           
+
             //**3** - GET A THING INSIDE THE EA REPO
 
             else if (CleanURL.Count() == 3)
@@ -192,7 +288,7 @@ namespace RestfulEA.Controllers
 
                         JObject JObjectToReturn = EA_JsonBuilder.JsonCreatePackage(WholeURL + "/" + CleanURL[1], ListOfPackages, ListOfDiagrams, ListOfElements);
                         return Content(JObjectToReturn.ToString(), "application/json");
-                  
+
                     }
 
                 }
@@ -206,7 +302,7 @@ namespace RestfulEA.Controllers
 
                     //Get the links for the viewbag
                     List<string> ListOfLinkURLs = new List<string>();        //Use this for the webserivces URL (name|type|GUID)
-                    List<string> ListOfLinksName = new List<string>();           
+                    List<string> ListOfLinksName = new List<string>();
 
 
                     EA.Diagram DiagramToShow = (EA.Diagram)m_Repository.GetDiagramByGuid(TOI_GUID);
@@ -218,7 +314,7 @@ namespace RestfulEA.Controllers
                     EA_Json_Diagram.DiagramName = DiagramToShow.Name;
                     EA_Json_Diagram.DiagramType = DiagramToShow.Type;
                     EA_Json_Diagram.DiagramGUID = DiagramToShow.DiagramGUID;
-                       
+
                     ViewBag.CurrentURL += "/" + DiagramToShow.Name + "|" + TOI_Type + "|" + DiagramToShow.DiagramGUID;
                     ViewBag.DiagramName = DiagramToShow.Name;
 
@@ -231,7 +327,7 @@ namespace RestfulEA.Controllers
                         EA.DiagramLink MyLink = (EA.DiagramLink)DiagramToShow.DiagramLinks.GetAt(iDO);
                         int ID = m_Repository.GetConnectorByID(MyLink.ConnectorID).ConnectorID;
 
-                        EA.Connector con;                    
+                        EA.Connector con;
 
                         try //Try and get the connector object from the repository
                         {
@@ -239,11 +335,11 @@ namespace RestfulEA.Controllers
                             ListOfLinkURLs.Add(con.Name + "|" + con.ObjectType + "|" + con.ConnectorGUID);
                             ListOfLinksName.Add(con.Name);
                         }
-                        catch{}
+                        catch { }
 
 
                     }
- 
+
                     //..this next bit gets the diagram objects.
                     for (short iDO = 0; iDO < DiagramToShow.DiagramObjects.Count; iDO++)
                     {
@@ -258,27 +354,27 @@ namespace RestfulEA.Controllers
                     ViewBag.ListOfElements = ListOfElementURLs;
                     ViewBag.ListOfElementsNames = ListOfElementsNames;
 
-                    ViewBag.ListOfLinkURLs  = ListOfLinkURLs;
+                    ViewBag.ListOfLinkURLs = ListOfLinkURLs;
                     ViewBag.ListOfLinkNames = ListOfLinksName;
 
-                    if(header == null)
-                    {return new HttpStatusCodeResult(406, "header string is null");}
+                    if (header == null)
+                    { return new HttpStatusCodeResult(406, "header string is null"); }
 
                     if (header.Contains("html"))
                     { return View("EA_ShowDiagram"); }
 
                     if (header.Contains("json"))
-                    {                                             
+                    {
                         Dictionary<string, string> DiagramDictionary = new Dictionary<string, string>();
                         DiagramDictionary.Add("Diagram Name", DiagramToShow.Name);
                         DiagramDictionary.Add("Created Data", DiagramToShow.CreatedDate.ToString());
                         DiagramDictionary.Add("Meta Type", DiagramToShow.MetaType);
-                        DiagramDictionary.Add("Notes", DiagramToShow.Notes);                    
+                        DiagramDictionary.Add("Notes", DiagramToShow.Notes);
                         DiagramDictionary.Add("Package ID", DiagramToShow.PackageID.ToString());
                         DiagramDictionary.Add("Big Preview", DiagramURL + "/BigPreview");
                         DiagramDictionary.Add("Small Preview", DiagramURL + "/SmallPreview");
 
-                        JObject JObjectToReturn = EA_JsonBuilder.JsonCreateDiagram(ProjectURL, ListOfElementURLs, DiagramDictionary,ListOfLinkURLs);
+                        JObject JObjectToReturn = EA_JsonBuilder.JsonCreateDiagram(ProjectURL, ListOfElementURLs, DiagramDictionary, ListOfLinkURLs);
                         return Content(JObjectToReturn.ToString(), "application/json");
 
                     }
@@ -316,7 +412,7 @@ namespace RestfulEA.Controllers
                         ListOfConnectors.Add(Name + "|otConnector|" + GUID);
 
 
-                    
+
                     }
 
 
@@ -326,21 +422,21 @@ namespace RestfulEA.Controllers
                     for (short i = 0; i < MyEle.TaggedValues.Count; i++)
                     {
                         EA.TaggedValue TagValue = (EA.TaggedValue)MyEle.TaggedValues.GetAt(i);
-                        
-                       //Only add the key if it does not exist
-                        if(myTVS.TaggedDictionary.ContainsKey(TagValue.Name)== false)
+
+                        //Only add the key if it does not exist
+                        if (myTVS.TaggedDictionary.ContainsKey(TagValue.Name) == false)
                         {
                             myTVS.TaggedDictionary.Add(TagValue.Name, TagValue.Value);
                         }
-                
-                   }
+
+                    }
                     ViewBag.TG_Store = myTVS;
                     foreach (EA.Diagram DiagramLoop in MyEle.Diagrams)
                     {
                         ListOfDiagrams.Add(DiagramLoop.Name + "|" + DiagramLoop.ObjectType + "|" + DiagramLoop.DiagramGUID);
                         ListOfDiagramsNames.Add(DiagramLoop.Name);
                     }
-                    ViewBag.TaggedSuffix = MyEle.Name + "|" + "otTaggedValue" + "|" + MyEle.ElementGUID; 
+                    ViewBag.TaggedSuffix = MyEle.Name + "|" + "otTaggedValue" + "|" + MyEle.ElementGUID;
                     ViewBag.ListOfDiagramsNames = ListOfDiagramsNames;
                     ViewBag.ListOfDiagrams = ListOfDiagrams;
 
@@ -365,11 +461,11 @@ namespace RestfulEA.Controllers
                     //Connectors
                     foreach (EA.Connector MyCon in MyEle.Connectors)
                     {
-                      //  ListOfConnectors.Add(MyCon.Name + "|otConnector|" + MyCon.ConnectorGUID);
-                     //   ListOfConnectorNames.Add(MyCon.Name);
+                        //  ListOfConnectors.Add(MyCon.Name + "|otConnector|" + MyCon.ConnectorGUID);
+                        //   ListOfConnectorNames.Add(MyCon.Name);
 
                         string ConnectorURL = MyCon.Name + "|otConnector|" + MyCon.ConnectorGUID;
-                     
+
                         ElementDictionary.Add("Connector:" + MyCon.Name, uri + "\\" + ConnectorURL);
 
                     }
@@ -380,7 +476,7 @@ namespace RestfulEA.Controllers
                     if (header.Contains("json"))
                     {
 
-                        JObject JObjectToReturn = EA_JsonBuilder.JsonCreateElement(WholeURL + "/" + CleanURL[1],ElementDictionary, myTVS, ListOfDiagrams);
+                        JObject JObjectToReturn = EA_JsonBuilder.JsonCreateElement(WholeURL + "/" + CleanURL[1], ElementDictionary, myTVS, ListOfDiagrams);
                         return Content(JObjectToReturn.ToString(), "application/json");
 
                     }
@@ -393,7 +489,7 @@ namespace RestfulEA.Controllers
                     //There is no native EA tagged value object
                     //One was created for the purpose of this project.
                     //The GUID that comes with tagged value is actually the GUID of the parent element 
-                   
+
                     EA.Element ParentElement = (EA.Element)m_Repository.GetElementByGuid(TOI_GUID);
                     RestfulEA.Models.EA_TaggedValueStore myTVS = new Models.EA_TaggedValueStore();
                     myTVS.ParentElementName = ParentElement.Name;
@@ -405,13 +501,13 @@ namespace RestfulEA.Controllers
 
                         if (myTVS.TaggedDictionary.ContainsKey(TagValue.Name) == false)
                         {
-                             myTVS.TaggedDictionary.Add(TagValue.Name, TagValue.Value);
-                        }                           
+                            myTVS.TaggedDictionary.Add(TagValue.Name, TagValue.Value);
+                        }
                     }
 
                     ViewBag.TG_Store = myTVS;
 
-                   // string header = Request.Headers.Get("Accept");
+                    // string header = Request.Headers.Get("Accept");
                     if (header.Contains("html"))
                     { return View("EA_ShowTaggedValues"); }
                     if (header.Contains("json"))
@@ -445,13 +541,13 @@ namespace RestfulEA.Controllers
                     ConnectorDictionary.Add("Colour", MyLink.Color.ToString());
                     ConnectorDictionary.Add("Direction", MyLink.Notes);
                     ConnectorDictionary.Add("Connector ID", MyLink.ConnectorID.ToString());
-            
+
                     if (header.Contains("html"))
                     { return View("EA_ShowConnector"); }
 
                     if (header.Contains("json"))
-                    {                 
-                        JObject JObjectToReturn = EA_JsonBuilder.JsonCreateConnector(WholeURL + "/" + CleanURL[1],ConnectorDictionary);
+                    {
+                        JObject JObjectToReturn = EA_JsonBuilder.JsonCreateConnector(WholeURL + "/" + CleanURL[1], ConnectorDictionary);
                         return Content(JObjectToReturn.ToString(), "application/json");
                     }
                 }
@@ -460,7 +556,7 @@ namespace RestfulEA.Controllers
             }
             return null;
         }
-        
+
         public ActionResult OSLC_SmallPreview()
         {
             //Get the URL that was posted.
@@ -496,42 +592,42 @@ namespace RestfulEA.Controllers
 
 
 
-                 List<string> ListOfElementsTypes = new List<string>();
-                 List<string> ListOfElementsNames = new List<string>();
-                 List<string> ListOfElementAuthor = new List<string>();
-                 List<string> ListOfElementSteroType = new List<string>();
-                 List<string> ListOfElementNotes = new List<string>();
+            List<string> ListOfElementsTypes = new List<string>();
+            List<string> ListOfElementsNames = new List<string>();
+            List<string> ListOfElementAuthor = new List<string>();
+            List<string> ListOfElementSteroType = new List<string>();
+            List<string> ListOfElementNotes = new List<string>();
 
-                EA.Diagram DiagramToShow = (EA.Diagram)m_Repository.GetDiagramByGuid(TOI_GUID);
-                ViewBag.DiagramName = DiagramToShow.Name;
+            EA.Diagram DiagramToShow = (EA.Diagram)m_Repository.GetDiagramByGuid(TOI_GUID);
+            ViewBag.DiagramName = DiagramToShow.Name;
 
 
-                for (short iDO = 0; iDO < DiagramToShow.DiagramObjects.Count; iDO++)
-                {
-                    EA.DiagramObject MyDO = (EA.DiagramObject)DiagramToShow.DiagramObjects.GetAt(iDO);
-                    int ID = m_Repository.GetElementByID(MyDO.ElementID).ElementID;
-                    EA.Element MyEle = (EA.Element)m_Repository.GetElementByID(ID);
+            for (short iDO = 0; iDO < DiagramToShow.DiagramObjects.Count; iDO++)
+            {
+                EA.DiagramObject MyDO = (EA.DiagramObject)DiagramToShow.DiagramObjects.GetAt(iDO);
+                int ID = m_Repository.GetElementByID(MyDO.ElementID).ElementID;
+                EA.Element MyEle = (EA.Element)m_Repository.GetElementByID(ID);
 
-      
-                    ListOfElementsNames.Add(MyEle.Name);
-                    ListOfElementsTypes.Add(MyEle.Type);
-                    ListOfElementAuthor.Add(MyEle.Author);
-                    ListOfElementSteroType.Add(MyEle.Stereotype);
-                    ListOfElementNotes.Add(MyEle.Notes);
-   
-                }
 
-                ViewBag.ListOfElementsTypes = ListOfElementsTypes;
-                ViewBag.ListOfElementsNames = ListOfElementsNames;
-                ViewBag.ListOfElementAuthor = ListOfElementAuthor;
-                ViewBag.ListOfElementSteroType = ListOfElementSteroType;
-                ViewBag.ListOfElementNotes = ListOfElementNotes;
+                ListOfElementsNames.Add(MyEle.Name);
+                ListOfElementsTypes.Add(MyEle.Type);
+                ListOfElementAuthor.Add(MyEle.Author);
+                ListOfElementSteroType.Add(MyEle.Stereotype);
+                ListOfElementNotes.Add(MyEle.Notes);
+
+            }
+
+            ViewBag.ListOfElementsTypes = ListOfElementsTypes;
+            ViewBag.ListOfElementsNames = ListOfElementsNames;
+            ViewBag.ListOfElementAuthor = ListOfElementAuthor;
+            ViewBag.ListOfElementSteroType = ListOfElementSteroType;
+            ViewBag.ListOfElementNotes = ListOfElementNotes;
 
             return View("EA_small_preview");
-            
+
         }
 
-            
+
         //This is used for extra commands such as doing the preview.  
         public ActionResult OSLC_BigPreview()
         {
@@ -561,7 +657,7 @@ namespace RestfulEA.Controllers
             string ActionOfInterest = CleanURL[CleanURL.Count() - 1];
 
             m_Repository = getEA_Repos(CleanURL[1]);
-            
+
             string[] UrlArray = ThingOfInterest.Split('|');
 
             string TOI_Name = UrlArray[0];
@@ -569,17 +665,17 @@ namespace RestfulEA.Controllers
             string TOI_GUID = UrlArray[2];
 
 
-        
-                string path = AppDomain.CurrentDomain.BaseDirectory + "images";
 
-                //If the path does exist then create it.
-                if (System.IO.Directory.Exists(path) == false)
-                { System.IO.Directory.CreateDirectory(path); }
+            string path = AppDomain.CurrentDomain.BaseDirectory + "images";
 
-                EA.Project eaProject = m_Repository.GetProjectInterface();
-                eaProject.PutDiagramImageToFile(TOI_GUID, path + "\\" + TOI_Name + ".jpg", 1);
+            //If the path does exist then create it.
+            if (System.IO.Directory.Exists(path) == false)
+            { System.IO.Directory.CreateDirectory(path); }
 
-                return base.File(path + "\\" + TOI_Name + ".jpg", "image/jpeg");
+            EA.Project eaProject = m_Repository.GetProjectInterface();
+            eaProject.PutDiagramImageToFile(TOI_GUID, path + "\\" + TOI_Name + ".jpg", 1);
+
+            return base.File(path + "\\" + TOI_Name + ".jpg", "image/jpeg");
 
         }
 
@@ -608,33 +704,29 @@ namespace RestfulEA.Controllers
 
             List<EA.Repository> MyListRepo = new List<EA.Repository>();
             MyListRepo = HttpContext.Application["IanList"] as List<EA.Repository>;
-
-
             foreach (EA.Repository reposLoop in MyListRepo)
             {
-
                 try
                 {
-
-
                     string EAFileName = System.IO.Path.GetFileNameWithoutExtension(reposLoop.ConnectionString);
                     if (EAFileName == pickedSP)
-                    return reposLoop;
+                        return reposLoop;
 
                 }
                 catch
                 {
 
                 }
-
-
-                    
-         
             }
             return null;
         }
 
-    
+
+
+
 
     }
 }
+
+
+    

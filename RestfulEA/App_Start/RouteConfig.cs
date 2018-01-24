@@ -16,33 +16,33 @@ namespace RestfulEA
 
             routes.MapRoute(
                 name: "Default",
-                url: "SPC",
-                defaults: new { Controller = "RESTEA", Action = "ParseURL",  }
+                url: "SPC", //Show service provider catalog
+                defaults: new { Controller = "RESTEA", Action = "ServiceProviderCatalog",  }
                 );
 
-           routes.MapRoute(
-                name: "Default2",
-                url: "SPC/{dog}",
-                defaults: new { Controller = "RESTEA", Action = "ParseURL",  }
-                );
+            routes.MapRoute(
+                 name: "Default2",
+                 url: "SPC/{SP}",  //show the service provider
+                 defaults: new { Controller = "RESTEA", Action = "ServiceProviderTop", }
+                 );
 
 
             routes.MapRoute(
                  name: "Default3",
-                 url: "SPC/{dog}/{cat}",
+                 url: "SPC/{SP}/{EA_Content}",
                  defaults: new { Controller = "RESTEA", Action = "ParseURL", }
                  );
 
 
             routes.MapRoute(
                  name: "Default4",
-                 url: "SPC/{dog}/{cat}/BigPreview",
+                 url: "SPC/{SP}/{EA_Content}/BigPreview",
                  defaults: new { Controller = "RESTEA", Action = "OSLC_BigPreview", }
                  );
 
             routes.MapRoute(
                  name: "Default5",
-                 url: "SPC/{dog}/{cat}/SmallPreview",
+                 url: "SPC/{SP}/{EA_Content}/SmallPreview",
                  defaults: new { Controller = "RESTEA", Action = "OSLC_SmallPreview", }
                  );
 
