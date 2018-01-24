@@ -97,7 +97,10 @@ namespace RestfulEA.Models.BusinessLogic
 
         }
 
-
+        internal void Generate_otPackage_content(Package packageToShow)
+        {
+            throw new NotImplementedException();
+        }
     }
 
 

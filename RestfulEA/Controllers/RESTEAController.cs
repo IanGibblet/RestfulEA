@@ -15,6 +15,8 @@ namespace RestfulEA.Controllers
     public class RESTEAController : Controller
     {
 
+
+        //Get all of the repositories
         public ActionResult ServiceProviderCatalog()
         {
             
@@ -47,7 +49,7 @@ namespace RestfulEA.Controllers
         }
 
 
-
+        //The the top layer of the repository
         public ActionResult ServiceProviderTop()
         {
             //Get the current list of EA repositories from the session variable
@@ -59,8 +61,9 @@ namespace RestfulEA.Controllers
 
 
             //Get the URL that was posted.
-            var UrlAppended = this.Url.Action();
+            var UrlAppended = this.Url.Action();       
             string UrlAppendage = UrlAppended.ToString();
+            UrlAppendage = UrlAppendage.Remove(0, 1);
 
             //parse the URL
             var VallueArray = UrlAppendage.Split('/');
@@ -73,16 +76,18 @@ namespace RestfulEA.Controllers
             m_Repository = getEA_Repos(ThingOfInterest);
 
 
-            ViewBag.CurrentURL = BaseURL;
-            ViewBag.ThingOfInterest = ThingOfInterest;
+            ViewBag.CurrentURL = BaseURL + UrlAppendage;
+            ViewBag.TOI_Name = ThingOfInterest;
+            ViewBag.TOI_Type = m_Repository.ObjectType;
 
 
             List <string> ListOfPackagesWithData = EDM.GetListOfPackageWithData(ThingOfInterest, m_Repository);
-            //     List <string> ListOfPackagesNames = 
+            List<string> ListOfPackageNameOnly = EDM.GetListOfPackageWithName(ThingOfInterest, m_Repository);
+            
+         
 
-            ViewBag.ListOfPackages = ListOfPackagesWithData; // ListOfPackageAllData;
-          //  ViewBag.ListOfPackagesNames = EDM.GetListOfPackageNameOnly(); // ListOfPackageNameOnly;
-
+            ViewBag.ListOfPackages = ListOfPackagesWithData; 
+            ViewBag.ListOfPackagesNames = ListOfPackageNameOnly;
 
             //We'll look into the header to decide if we need to return somthing different for JSON
             string header = Request.Headers.Get("Accept");
@@ -100,6 +105,73 @@ namespace RestfulEA.Controllers
 
             return null;
         }
+
+
+
+
+        //Get a "thing" from inside the rest service
+        public ActionResult ServiceProviderContent()
+        {
+
+            EA.Repository m_Repository = new EA.Repository();
+
+
+            EA_Data_Manipulator EDM = new EA_Data_Manipulator();
+            string BaseURL = EDM.GetWholeURL(Request, Url);
+
+
+            //Get the URL that was posted.
+            var UrlAppended = this.Url.Action();
+            string UrlAppendage = UrlAppended.ToString();
+            UrlAppendage = UrlAppendage.Remove(0, 1);
+
+           
+            var URLArray = UrlAppendage.Split('/'); //parse the URL
+            string[] CleanURL = URLArray.Where(x => !string.IsNullOrEmpty(x)).ToArray(); //Clean emptycells
+
+            var ThingArrary = CleanURL[2].Split('|');
+
+            ViewBag.TOI_Name = ThingArrary[0];
+            ViewBag.TOI_Type = ThingArrary[1];
+            ViewBag.TOI_GUID = ThingArrary[2];
+
+            //Package type is returned as otPackage but in EA it's package
+            //not sure what is going on,
+
+            m_Repository = getEA_Repos(URLArray[1]);
+            EA.Package PackageToShow = (EA.Package)m_Repository.GetPackageByGuid(ThingArrary[2]);
+
+
+
+            //Process each element type seperatley
+            switch (ThingArrary[1])
+            {
+                case "otPackage":
+                    EDM.Generate_otPackage_content(PackageToShow);
+
+                    break;
+                case "otDiagram":
+
+                    break;
+                case "otElement":
+
+                    break;
+                case "otTaggedValue":
+
+
+
+
+
+                default:
+                    break;
+            }
+
+
+
+
+            return null;
+        }
+
 
 
 
@@ -187,6 +259,8 @@ namespace RestfulEA.Controllers
                 ViewBag.CurrentURL = url;
                 ViewBag.SelectedSP = CleanURL[1];
                 ViewBag.ThingOfInterest = ThingOfInterest;
+
+
 
                 //GET THE PACKAGES INSIDE THE ROOT NODE
                 List<EA.Package> ListOfRootPackages = EA_Helper.GetListOfRootNodes(ThingOfInterest, m_Repository);

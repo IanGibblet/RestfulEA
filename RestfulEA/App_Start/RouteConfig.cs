@@ -30,7 +30,7 @@ namespace RestfulEA
             routes.MapRoute(
                  name: "Default3",
                  url: "SPC/{SP}/{EA_Content}",
-                 defaults: new { Controller = "RESTEA", Action = "ParseURL", }
+                 defaults: new { Controller = "RESTEA", Action = "ServiceProviderContent", }
                  );
 
 
