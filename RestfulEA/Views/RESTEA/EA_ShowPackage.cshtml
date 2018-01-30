@@ -1,0 +1,121 @@
+﻿
+@{
+    ViewBag.Title = "Contents of " + ViewBag.TOI_Name;
+}
+
+<!DOCTYPE html>
+
+<head>
+    <title>EA Webservice </title>
+    <link rel="stylesheet" type="text/css" href="~/Content/Styles_EA2.css" />
+</head>
+
+<body>
+
+    <div id="container">
+        <div id="header">
+            <h2> Contents of @ViewBag.TOI_Name  ( @ViewBag.TOI_Type )  ;</h2>
+            <h3> MVC View: EA_ShowPackage</h3>
+
+
+        </div>
+        <div id="content">
+
+            @ViewBag.WhatHasBeenSelected  <br />
+
+
+            <br />
+            <br />
+            <b>Packages</b>
+
+            @if (ViewBag.ListOfPackages != null)
+            {
+                Html.Raw("Packages:");
+
+                for (int i = 0; i < ViewBag.ListOfPackages.Count; i++)
+                {
+                    List<string> LocalListOfPackages = new List<string>();
+                    LocalListOfPackages = ViewBag.ListOfPackages;
+                    string AllPackageData = LocalListOfPackages.ElementAt(i);
+
+                    List<string> LocalListOfPackagesName = new List<string>();
+                    LocalListOfPackagesName = ViewBag.ListOfPackagesNames;
+
+                    string PackageNameOnly = LocalListOfPackagesName.ElementAt(i);
+
+                    <br />
+
+                    //     <a href="@ViewBag.CurrentURL/@AllPackageData">
+                    <a href="@AllPackageData">
+                        @PackageNameOnly
+                    </a>
+                }
+            }
+
+            <br />
+            <br />
+            <b>Diagrams</b>
+
+            @if (ViewBag.ListOfDiagrams != null)
+            {
+
+                for (int i = 0; i < ViewBag.ListOfDiagrams.Count; i++)
+                {
+                    List<string> LocalListOfDiagrams = new List<string>();
+                    LocalListOfDiagrams = ViewBag.ListOfDiagrams;
+                    string AllDiagramData = LocalListOfDiagrams.ElementAt(i);
+
+                    List<string> LocalListOfDiagramsNames = new List<string>();
+                    LocalListOfDiagramsNames = ViewBag.ListOfDiagramsNames;
+                    string DiagramNameOnly = LocalListOfDiagramsNames.ElementAt(i);
+
+
+                    <br />
+                    <a href="@AllDiagramData">
+                        @DiagramNameOnly
+                    </a>
+
+                }
+            }
+
+            <br />
+            <br />
+            <b>Elements</b>
+
+
+            @if (ViewBag.ListOfElements != null)
+
+            {
+                for (int i = 0; i < ViewBag.ListOfElements.Count; i++)
+                {
+                    List<string> LocalListOfElements = new List<string>();
+                    LocalListOfElements = ViewBag.ListOfElements;
+                    string AllElementData = LocalListOfElements.ElementAt(i);
+
+                    List<string> LocalListOfElementsName = new List<string>();
+                    LocalListOfElementsName = ViewBag.ListOfElementsNames;
+                    string ElementNameOnly = LocalListOfElementsName.ElementAt(i);
+
+
+                    <br />
+                    <a href="@AllElementData">
+                        @ElementNameOnly
+                    </a>
+
+
+                }
+
+            }
+
+
+        </div>
+
+        <br />
+
+
+
+        <div id="footer">
+            Webservice for Enterprise Architect
+        </div>
+    </div>
+</body>

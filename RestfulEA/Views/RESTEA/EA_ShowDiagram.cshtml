@@ -15,6 +15,7 @@
     <div id="container">
         <div id="header">
             <h2> Contents of @ViewBag.TOI_Name  ( @ViewBag.TOI_Type )  ;</h2>
+            <h3> MVC View: EA_ShowDiagram </h3>
         </div>
         <div id="content">
 
@@ -25,23 +26,25 @@
 
             <br />
 
+
+
+
+            @{
+                string Big = ViewData["CurrentURL"].ToString() + "/BigPreview";
+                string Sml = ViewData["CurrentURL"].ToString() + "/SmallPreview";
+            }
+
+
             
-            <a href="@ViewBag.CurrentURL/BigPreview">
-                OSLC_Big_Preview
-            </a>
-
+            <a href= @Big> OSLC_Big_Preview  </a>
             <br />
 
-            <a href="@ViewBag.CurrentURL/SmallPreview">
-                OSLC_Small_Preview
-            </a>
-
-
-        
-             
-
-
+            <a href=@Sml> OSLC_Small_Preview  </a>
             <br />
+
+   
+
+      
             <br />
             <b>Elements</b>
 

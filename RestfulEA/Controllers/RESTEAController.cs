@@ -15,7 +15,6 @@ namespace RestfulEA.Controllers
     public class RESTEAController : Controller
     {
 
-
         //Get all of the repositories
         public ActionResult ServiceProviderCatalog()
         {
@@ -25,7 +24,7 @@ namespace RestfulEA.Controllers
             MyListRepo = HttpContext.Application["IanList"] as List<EA.Repository>;
             EA_Data_Manipulator EDM = new EA_Data_Manipulator();
 
-            string WholeURL = EDM.GetWholeURL(Request, Url);
+            string WholeURL = EDM.GetBaseURL(Request, Url);
 
             ViewBag.ListOfSPs = EDM.GetListOfSPs(MyListRepo);
             ViewBag.CurrentURL = "SPC";
@@ -42,7 +41,7 @@ namespace RestfulEA.Controllers
             //HTML
             if (header.Contains("html"))
             {
-                return View("EA_Projects");
+                return View("EA_ServiceProviderCatalog");
             }
 
             return null;
@@ -57,7 +56,10 @@ namespace RestfulEA.Controllers
             MyListRepo = HttpContext.Application["IanList"] as List<EA.Repository>;
             EA_Data_Manipulator EDM = new EA_Data_Manipulator();
 
-            string BaseURL = EDM.GetWholeURL(Request, Url);
+          
+            string BaseURL = EDM.GetBaseURL(Request, Url);
+
+            string SP_URL = Request.Url.AbsoluteUri;
 
 
             //Get the URL that was posted.
@@ -69,14 +71,21 @@ namespace RestfulEA.Controllers
             var VallueArray = UrlAppendage.Split('/');
 
             //Clean emptycells
-            string[] CleanURL = VallueArray.Where(x => !string.IsNullOrEmpty(x)).ToArray();
-            
+            string[] CleanURL = VallueArray.Where(x => !string.IsNullOrEmpty(x)).ToArray();     
             string ThingOfInterest = CleanURL[1];
+  
+            var TOI_Array = ThingOfInterest.Split('|');
+
+         
+
+
             EA.Repository m_Repository = new EA.Repository();  //store the current working repository
-            m_Repository = getEA_Repos(ThingOfInterest);
+            m_Repository = getEA_Repos(TOI_Array[0]);
 
 
-            ViewBag.CurrentURL = BaseURL + UrlAppendage;
+
+            //   ViewBag.CurrentURL = BaseURL + UrlAppendage;
+            ViewBag.CurrentURL = SP_URL;
             ViewBag.TOI_Name = ThingOfInterest;
             ViewBag.TOI_Type = m_Repository.ObjectType;
 
@@ -100,7 +109,7 @@ namespace RestfulEA.Controllers
 
             if (header.Contains("html"))
             {
-                return View("EA_Resources");
+                return View("EA_ServiceProviderTop");
             }
 
             return null;
@@ -117,7 +126,7 @@ namespace RestfulEA.Controllers
 
 
             EA_Data_Manipulator EDM = new EA_Data_Manipulator();
-            string BaseURL = EDM.GetWholeURL(Request, Url);
+            string BaseURL = EDM.GetBaseURL(Request, Url);
 
 
             //Get the URL that was posted.
@@ -134,26 +143,78 @@ namespace RestfulEA.Controllers
             ViewBag.TOI_Name = ThingArrary[0];
             ViewBag.TOI_Type = ThingArrary[1];
             ViewBag.TOI_GUID = ThingArrary[2];
-
-            //Package type is returned as otPackage but in EA it's package
-            //not sure what is going on,
+            ViewBag.CurrentURL = CleanURL[0] + "/" + CleanURL[1];
 
             m_Repository = getEA_Repos(URLArray[1]);
             EA.Package PackageToShow = (EA.Package)m_Repository.GetPackageByGuid(ThingArrary[2]);
 
 
+            //otPackage Lists
+            List<string> ListOfPackages = new List<string>();
+            List<string> ListOfDiagrams = new List<string>();
+            List<string> ListOfElements = new List<string>();
+            List<string> ListOfPackagesNames = new List<string>();
+            List<string> ListOfDiagramsNames = new List<string>();
+            List<string> ListOfElementsNames = new List<string>();
 
-            //Process each element type seperatley
+            //otDiagram Lists
+            List<string> ListOfLinks = new List<string>();
+            List<string> ListOfLinkNames = new List<string>();
+
+
+            //otElement Lists
+            List<string> ListOfConnectors = new List<string>();
+            List<string> ListOfConnectorNames = new List<string>();
+
+
+            //Objects for the JSON
+            EA_Diagram EA_JSON_Diagram = new EA_Diagram();
+
+
+
+            //Generate the content for the viewbag depending on type of object that the 
+            //user last clicked on.
             switch (ThingArrary[1])
             {
                 case "otPackage":
-                    EDM.Generate_otPackage_content(PackageToShow);
+                    EDM.Generate_otPackage_content(PackageToShow, out ListOfPackages, out ListOfDiagrams, out ListOfElements, out ListOfPackagesNames, out ListOfDiagramsNames, out ListOfElementsNames);
+                    ViewBag.ListOfPackages = ListOfPackages;
+                    ViewBag.ListOfDiagrams = ListOfDiagrams;
+                    ViewBag.ListOfElements = ListOfElements;
+                    ViewBag.ListOfPackagesNames = ListOfPackagesNames;
+                    ViewBag.ListOfDiagramsNames = ListOfDiagramsNames;
+                    ViewBag.ListOfElementsNames = ListOfElementsNames;
+
+
 
                     break;
                 case "otDiagram":
+                    EDM.Generate_otDiagram_content(m_Repository, ThingArrary[2], out ListOfElements,out ListOfElementsNames, out ListOfLinks, out ListOfLinkNames);
+
+
+
+                    ViewBag.ListOfElements = ListOfElements;
+                    ViewBag.ListOfElementsNames = ListOfElementsNames;
+                    ViewBag.ListOfLinkURLs = ListOfLinks;
+                    ViewBag.ListOfLinkNames = ListOfLinkNames;
+                    ViewBag.CurrentURL += "/" + ThingArrary[0] + "|" + ThingArrary[1] + "|" + ThingArrary[2];
+                    ViewData["CurrentURL"] = ThingArrary[0] + "|" + ThingArrary[1] + "|" + ThingArrary[2];
+
+      
+                    ViewBag.DiagramName = ThingArrary[0];
+
 
                     break;
                 case "otElement":
+                    EA.Element MyEle = (EA.Element)m_Repository.GetElementByGuid(ThingArrary[2]);
+                    ViewBag.Author = MyEle.Author;
+                    ViewBag.ElementName = MyEle.Name;
+                    ViewBag.notes = MyEle.Notes;
+
+                    RestfulEA.Models.EA_TaggedValueStore myTVS = new Models.EA_TaggedValueStore();
+                    myTVS.ParentElementName = MyEle.Name;
+                    myTVS.ParentElementGUID = MyEle.ElementGUID;
+
 
                     break;
                 case "otTaggedValue":
@@ -164,6 +225,70 @@ namespace RestfulEA.Controllers
 
                 default:
                     break;
+            }
+
+
+
+            //We'll look into the header to decide if we need to return somthing different for JSON
+            string header = Request.Headers.Get("Accept");
+
+            if (header.Contains("html"))
+            {
+
+                switch (ThingArrary[1])
+                {
+                    case "otPackage":
+                        return View("EA_ShowPackage");
+
+                        
+                    case "otDiagram":
+
+                        return View("EA_ShowDiagram");
+
+                    
+                    case "otElement":
+
+
+
+
+
+                        break;
+                    case "otTaggedValue":
+
+                    default:
+                        break;
+                }
+
+
+            }
+
+            if (header.Contains("json"))
+            {
+
+                switch (ThingArrary[1])
+                {
+                    case "otPackage":
+                        JObject JObjectToReturn = EA_JsonBuilder.JsonCreatePackage(BaseURL + "/" + CleanURL[1], ListOfPackages, ListOfDiagrams, ListOfElements);
+                        return Content(JObjectToReturn.ToString(), "application/json");
+                       
+                    case "otDiagram":
+
+    
+
+
+                        break;
+                    case "otElement":
+
+                        break;
+                    case "otTaggedValue":
+
+                    default:
+                        break;
+                }
+
+
+
+
             }
 
 

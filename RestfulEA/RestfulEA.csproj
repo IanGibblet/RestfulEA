@@ -179,13 +179,14 @@
     <Content Include="Views\SP\_EA_Display_Deep.cshtml" />
     <Content Include="Views\SP\_EA_Display_Diagram_Contents.cshtml" />
     <Content Include="Views\SP\_EA_Display_Element.cshtml" />
-    <Content Include="Views\RESTEA\EA_Projects.cshtml" />
-    <Content Include="Views\RESTEA\EA_Resources.cshtml" />
+    <Content Include="Views\RESTEA\EA_ServiceProviderCatalog.cshtml" />
+    <Content Include="Views\RESTEA\EA_ServiceProviderTop.cshtml" />
     <Content Include="Views\RESTEA\EA_ShowDiagram.cshtml" />
     <Content Include="Views\RESTEA\EA_ShowElement.cshtml" />
     <Content Include="Views\RESTEA\EA_small_preview.cshtml" />
     <Content Include="Views\RESTEA\EA_ShowTaggedValues.cshtml" />
     <Content Include="Views\RESTEA\EA_ShowConnector.cshtml" />
+    <Content Include="Views\RESTEA\EA_ShowPackage.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
