@@ -80,15 +80,22 @@
                         <b>Connectors associated with @ViewBag.TOI_Name</b>
                     }
 
+
+
+
+
                     for (int i = 0; i < LocalListConnectorNames.Count; i++)
                     {
-                        string ConnectorData = LocalListConnectors.ElementAt(i);
-                        string ConnectorName = LocalListConnectorNames.ElementAt(i);
 
+                        string HyperlinkName = LocalListConnectors.ElementAt(i);
+                        string HylinkDestination = LocalListConnectorNames.ElementAt(i);
+
+
+                  
                         <br />
 
-                        <a href="@ViewBag.URL_Prefix/@ConnectorName">
-                                                    @ConnectorData
+                        <a href="@HylinkDestination">
+                               @HyperlinkName
                             </a>
 
 
