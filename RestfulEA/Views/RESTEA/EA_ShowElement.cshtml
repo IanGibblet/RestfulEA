@@ -15,6 +15,8 @@
     <div id="container">
         <div id="header">
             <h2> Contents of @ViewBag.TOI_Name  ( @ViewBag.TOI_Type )  ;</h2>
+            <h3> MVC View: EA_ShowElement </h3>
+
         </div>
         <div id="content">
 
@@ -26,98 +28,108 @@
             <br />
             <br />
             <b>Tagged Values</b>
-
-
-
-            <br />
+            <br />       
 
             @{ 
                 RestfulEA.Models.EA_TaggedValueStore myTVS = new RestfulEA.Models.EA_TaggedValueStore();
                 myTVS = ViewBag.TG_Store;
             }
 
+             @*There is no tagged values object in EA which represents the properties  *@
+               @*Create a tagged values suffix *@
+
+                    @foreach (KeyValuePair<string, string> Entry in myTVS.TaggedDictionary)
+                    {
+
+                        string HyperlinkName = Entry.Key + "-" + Entry.Value;
+
+                        string HylinkDestination = Entry.Key + "|otTaggedValue|" + ViewBag.TOI_GUID;
 
 
-            @if (myTVS.ParentElementName != "")
-            //There is no tagged values object in EA which represents the properties  
-            {
-                //Create a tagged values suffix
-                               
-                    <a href="@ViewBag.URL_Prefix/@ViewBag.TaggedSuffix">
-                        Show Tagged Values
-                    </a>
-                    <br /><br />      
-                RestfulEA.Models.EA_TaggedValueStore TG_Store = new RestfulEA.Models.EA_TaggedValueStore();
-                TG_Store = ViewBag.TG_Store;
-
-            }
-
-
-            @if (ViewBag.ListOfConnectors != null)
-            {
-
-                List<string> LocalListConnectorNames = new List<string>();
-                LocalListConnectorNames = ViewBag.ListOfConnectors;
-
-                List<string> LocalListConnectors = new List<string>();
-                LocalListConnectors = ViewBag.ListOfConnectorNames;
-
-
-                if (LocalListConnectorNames.Count > 0)
-                {
-                    <b>Connectors associated with @ViewBag.TOI_Name</b>
-                }
-
-                for (int i = 0; i < LocalListConnectorNames.Count; i++)
-                {
-                    string ConnectorData = LocalListConnectors.ElementAt(i);
-                    string ConnectorName = LocalListConnectorNames.ElementAt(i);
-
-                    <br />
-
-                    <a href="@ViewBag.URL_Prefix/@ConnectorName">
-                                                @ConnectorData
+                        <a href=" @HylinkDestination">
+                           @HyperlinkName
                         </a>
+                    
+
+                        @:<br />
+
+                    }
 
 
+                        <br /><br />
+                  
 
 
-                }
-            }
-
-            @if (ViewBag.ListOfDiagramsNames != null)
-            {
-
-                List<string> LocalListDiagramNames = new List<string>();
-                LocalListDiagramNames = ViewBag.ListOfDiagramsNames;
-
-                if (LocalListDiagramNames.Count > 0)
+                @if (ViewBag.ListOfConnectors != null)
                 {
-                    <b> Diagrams contained in @ViewBag.TOI_Name </b>
-                }
-                List<string> LocalListDiagram = new List<string>();
-                LocalListDiagram = ViewBag.ListOfDiagrams;
 
-                for (int i = 0; i < LocalListDiagramNames.Count; i++)
+                    List<string> LocalListConnectorNames = new List<string>();
+                    LocalListConnectorNames = ViewBag.ListOfConnectors;
+
+                    List<string> LocalListConnectors = new List<string>();
+                    LocalListConnectors = ViewBag.ListOfConnectorNames;
+
+
+
+
+
+
+
+                    if (LocalListConnectorNames.Count > 0)
+                    {
+                        <b>Connectors associated with @ViewBag.TOI_Name</b>
+                    }
+
+                    for (int i = 0; i < LocalListConnectorNames.Count; i++)
+                    {
+                        string ConnectorData = LocalListConnectors.ElementAt(i);
+                        string ConnectorName = LocalListConnectorNames.ElementAt(i);
+
+                        <br />
+
+                        <a href="@ViewBag.URL_Prefix/@ConnectorName">
+                                                    @ConnectorData
+                            </a>
+
+
+
+
+                    }
+                }
+
+                @if (ViewBag.ListOfDiagramsNames != null)
                 {
-                    string DiagramData = LocalListDiagram.ElementAt(i);
-                    string Diagramname = LocalListDiagramNames.ElementAt(i);
 
-                    <br />
-                    <a href="@ViewBag.URL_Prefix/@Diagramname">
-                                                 @DiagramData
-                                        </a>
+                    List<string> LocalListDiagramNames = new List<string>();
+                    LocalListDiagramNames = ViewBag.ListOfDiagramsNames;
+
+                    if (LocalListDiagramNames.Count > 0)
+                    {
+                        <b> Diagrams contained in @ViewBag.TOI_Name </b>
+                    }
+                    List<string> LocalListDiagram = new List<string>();
+                    LocalListDiagram = ViewBag.ListOfDiagrams;
+
+                    for (int i = 0; i < LocalListDiagramNames.Count; i++)
+                    {
+                        string DiagramData = LocalListDiagram.ElementAt(i);
+                        string Diagramname = LocalListDiagramNames.ElementAt(i);
+
+                        <br />
+                        <a href="@ViewBag.URL_Prefix/@Diagramname">
+                                                     @DiagramData
+                                            </a>
+                    }
                 }
-            }
 
 
+            </div>
+
+            <br />
+
+
+            <div id="footer">
+                Webservice for Enterprise Architect
+            </div>
         </div>
-
-        <br />
-
-
-        <div id="footer">
-            Webservice for Enterprise Architect
-        </div>
-    </div>
-</body>
+    </body>

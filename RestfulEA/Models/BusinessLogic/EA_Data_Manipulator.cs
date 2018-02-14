@@ -132,6 +132,7 @@ namespace RestfulEA.Models.BusinessLogic
 
         }
 
+        //PACKAGE CONTENT
         public void Generate_otPackage_content(Package PackageToShow,
             out List<string> ListOfPackages,
             out List<string> ListOfDiagrams,
@@ -171,12 +172,13 @@ namespace RestfulEA.Models.BusinessLogic
         }
 
 
-
-        public void Generate_otDiagram_content(EA.Repository m_Repository, string TOI_GUID,
+        //DIAGRAM CONTENT
+        public void Generate_otDiagram_content(EA.Repository m_Repository, string TOI_GUID, string SP_BaseURL,
             out List<string> listOfElements,
             out List<string> listOfElementsNames,
             out List<string> listOfLinks,
-            out List<string> listOfLinkNames)
+            out List<string> listOfLinkNames,
+            out Dictionary<string,string> DiagramDictionary)
         {
 
             listOfElements = new List<string>();
@@ -216,10 +218,181 @@ namespace RestfulEA.Models.BusinessLogic
                 }
                 catch { }
 
+            }
 
 
+
+            //JSON Content
+            string DiagramURL = SP_BaseURL + "/" +  DiagramToShow.Name + "|otDiagram|" + TOI_GUID; 
+
+
+            DiagramDictionary = new Dictionary<string, string>();
+            DiagramDictionary.Add("Diagram Name", DiagramToShow.Name);
+            DiagramDictionary.Add("Created Data", DiagramToShow.CreatedDate.ToString());
+            DiagramDictionary.Add("Meta Type", DiagramToShow.MetaType);
+            DiagramDictionary.Add("Notes", DiagramToShow.Notes);
+            DiagramDictionary.Add("Package ID", DiagramToShow.PackageID.ToString());
+            DiagramDictionary.Add("Big Preview", DiagramURL + "/BigPreview");
+            DiagramDictionary.Add("Small Preview", DiagramURL + "/SmallPreview");
+
+
+
+
+
+        }
+
+
+
+        //ELEMENT CONTENT
+        public void Generate_otElement_content(
+            Repository m_Repository, 
+            string TOI_GUID, 
+            out List<string> listOfDiagrams, 
+            out List<string> listOfDiagramsNames,
+            out List<string> ListOfConnectors, 
+            out List<string> ListOfConnectorNames, 
+            out  Dictionary<string, string> elementAttributes,
+            out EA_TaggedValueStore myTVS)
+        {
+            listOfDiagrams = new List<string>();
+            listOfDiagramsNames = new List<string>();
+            ListOfConnectors = new List<string>();
+            ListOfConnectorNames = new List<string>();
+            elementAttributes = new Dictionary<string, string>();
+            myTVS = new EA_TaggedValueStore();
+
+
+            EA.Element MyEle = (EA.Element)m_Repository.GetElementByGuid(TOI_GUID);
+
+            elementAttributes.Add("Name", MyEle.Name);
+            elementAttributes.Add("Notes", MyEle.Notes);
+            elementAttributes.Add("Author", MyEle.Author);
+            elementAttributes.Add("DataCreated", MyEle.Created.ToString());
+            elementAttributes.Add("Version", MyEle.Version);
+            elementAttributes.Add("Status", MyEle.Status);
+            elementAttributes.Add("GUID", MyEle.ElementGUID);
+
+
+            //CONNECTORS
+            foreach (EA.Connector MyConnector in MyEle.Connectors)
+            {
+                string GUID = MyConnector.ConnectorGUID;
+                string Name = MyConnector.Name;
+                string Type = MyConnector.ObjectType.ToString();
+
+                ListOfConnectorNames.Add(Name);
+                ListOfConnectors.Add(Name + "|otConnector|" + GUID);
 
             }
+
+
+            //TAGGED VALUES
+            for (short i = 0; i < MyEle.TaggedValues.Count; i++)
+            {
+                EA.TaggedValue TagValue = (EA.TaggedValue)MyEle.TaggedValues.GetAt(i);
+
+                //Only add the key if it does not exist
+                if (myTVS.TaggedDictionary.ContainsKey(TagValue.Name) == false)
+                {
+                    myTVS.TaggedDictionary.Add(TagValue.Name, TagValue.Value);
+                }
+
+            }
+
+            myTVS.ParentElementName = MyEle.Name;
+            myTVS.ParentElementGUID = MyEle.ElementGUID;
+
+
+
+
+            //DIAGRAMS
+            foreach (EA.Diagram DiagramLoop in MyEle.Diagrams)
+            {
+                listOfDiagrams.Add(DiagramLoop.Name + "|" + DiagramLoop.ObjectType + "|" + DiagramLoop.DiagramGUID);
+                listOfDiagramsNames.Add(DiagramLoop.Name);
+            }
+
+
+
+        }
+
+        public void Generate_otConnector_content(
+            Repository m_Repository, 
+            string TOI_GUID, 
+            string TOI_Name,
+            string TOI_Type,
+            out EA.Connector MyLink, 
+            out Dictionary<string, string> ConnectorDictionary)
+        {
+
+            EA.Package MyModel = (EA.Package)m_Repository.Models.GetAt(0);
+
+            MyLink =  m_Repository.GetConnectorByGuid(TOI_GUID);
+
+
+            
+
+            //  EA.DiagramLink MyDiagramLink = (EA.DiagramLink)DiagramToShow.DiagramLinks.GetAt(iDO);
+
+            ConnectorDictionary = new Dictionary<string, string>();
+            MyLink = (EA.Connector)m_Repository.GetConnectorByGuid(TOI_GUID);
+
+            ConnectorDictionary.Add("Name", TOI_Name);
+            ConnectorDictionary.Add("Type", TOI_Type);
+            ConnectorDictionary.Add("GUID", TOI_GUID);
+            ConnectorDictionary.Add("Alias", MyLink.Alias);
+            ConnectorDictionary.Add("Colour", MyLink.Color.ToString());
+            ConnectorDictionary.Add("Direction", MyLink.Notes);
+            ConnectorDictionary.Add("Connector ID", MyLink.ConnectorID.ToString());
+            ConnectorDictionary.Add("Sterotype", MyLink.Stereotype);
+
+
+
+            int ID = m_Repository.GetConnectorByID(MyLink.ConnectorID).ConnectorID;
+
+            EA.Connector con;
+
+            try //Try and get the connector object from the repository
+            {
+                con = (EA.Connector)m_Repository.GetConnectorByID(ID);
+              //  ListOfLinkURLs.Add(con.Name + "|" + con.ObjectType + "|" + con.ConnectorGUID);
+               // ListOfLinksName.Add(con.Name);
+            }
+            catch { }
+
+
+
+        }
+
+        public void Generate_otTaggedValues_content(Repository m_Repository, string TOI_GUID,string TOI_Name, out EA_TaggedValueStore myTVS)
+        {
+         
+
+
+            EA.Element ParentElement = (EA.Element)m_Repository.GetElementByGuid(TOI_GUID);
+            myTVS = new Models.EA_TaggedValueStore();
+            myTVS.ParentElementName = ParentElement.Name;
+            myTVS.ParentElementGUID = ParentElement.ElementGUID;
+
+
+            for (short i = 0; i < ParentElement.TaggedValues.Count; i++)
+            {
+                EA.TaggedValue TagValue = (EA.TaggedValue)ParentElement.TaggedValues.GetAt(i);
+
+
+
+                if (TagValue.Name == TOI_Name)
+                {
+                    if (myTVS.TaggedDictionary.ContainsKey(TagValue.Name) == false)
+                    {
+                        myTVS.TaggedDictionary.Add(TagValue.Name, TagValue.Value);
+                    }
+                }
+            
+
+            }
+
+
 
 
 

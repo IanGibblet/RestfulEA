@@ -27,13 +27,10 @@
             <br />
 
 
-
-
             @{
                 string Big = ViewData["CurrentURL"].ToString() + "/BigPreview";
                 string Sml = ViewData["CurrentURL"].ToString() + "/SmallPreview";
             }
-
 
             
             <a href= @Big> OSLC_Big_Preview  </a>
@@ -42,8 +39,7 @@
             <a href=@Sml> OSLC_Small_Preview  </a>
             <br />
 
-   
-
+ 
       
             <br />
             <b>Elements</b>
@@ -63,8 +59,10 @@
 
                     string ElementNameOnly = LocalListOfElementsName.ElementAt(i);
 
+                  //  string ElementURL = ViewData["SP_URL"].ToString();
+
                     <br />
-                    <a href="@ViewBag.URL_Prefix/@AllElementData">
+                    <a href="@AllElementData">
                         @ElementNameOnly
                     </a>
                 }
@@ -93,8 +91,10 @@
                     string LinkNameOnly = LocalListOfLinkNames.ElementAt(i);
 
                     <br />
+                  //  string LinkURL = ViewData["SP_URL"].ToString();
 
-                    <a href="@ViewBag.URL_Prefix/@AllLinkData">
+
+                    <a href="@AllLinkData">
                         @LinkNameOnly
                     </a>
                 }

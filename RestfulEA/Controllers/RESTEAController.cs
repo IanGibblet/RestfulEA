@@ -122,31 +122,43 @@ namespace RestfulEA.Controllers
         public ActionResult ServiceProviderContent()
         {
 
+            //Stuff we use later
             EA.Repository m_Repository = new EA.Repository();
-
-
             EA_Data_Manipulator EDM = new EA_Data_Manipulator();
-            string BaseURL = EDM.GetBaseURL(Request, Url);
 
 
+            //TODO - Investigate if we really need this.
+            string RootURL = EDM.GetBaseURL(Request, Url);
+
+
+            //TODO - Tidy up all this array stuff
             //Get the URL that was posted.
             var UrlAppended = this.Url.Action();
             string UrlAppendage = UrlAppended.ToString();
             UrlAppendage = UrlAppendage.Remove(0, 1);
-
-           
             var URLArray = UrlAppendage.Split('/'); //parse the URL
-            string[] CleanURL = URLArray.Where(x => !string.IsNullOrEmpty(x)).ToArray(); //Clean emptycells
+            string[] BaseURL = URLArray.Where(x => !string.IsNullOrEmpty(x)).ToArray(); //Clean emptycells
 
-            var ThingArrary = CleanURL[2].Split('|');
+            var ThingArrary = BaseURL[2].Split('|');
 
-            ViewBag.TOI_Name = ThingArrary[0];
-            ViewBag.TOI_Type = ThingArrary[1];
-            ViewBag.TOI_GUID = ThingArrary[2];
-            ViewBag.CurrentURL = CleanURL[0] + "/" + CleanURL[1];
 
+            string TOI_Name = ThingArrary[0];
+            string TOI_Type = ThingArrary[1];
+            string TOI_GUID = ThingArrary[2];
+            string SP_Root_URL = RootURL + BaseURL[0] + "/" + BaseURL[1];
+        
+            ViewBag.TOI_Name = TOI_Name;
+            ViewBag.TOI_Type = TOI_Type;
+            ViewBag.TOI_GUID = TOI_GUID;
+
+
+
+            ViewBag.CurrentURL = BaseURL[0] + "/" + BaseURL[1];
+
+
+            //Get the master repo which is needed by all things that have been clicked.
             m_Repository = getEA_Repos(URLArray[1]);
-            EA.Package PackageToShow = (EA.Package)m_Repository.GetPackageByGuid(ThingArrary[2]);
+            
 
 
             //otPackage Lists
@@ -158,13 +170,22 @@ namespace RestfulEA.Controllers
             List<string> ListOfElementsNames = new List<string>();
 
             //otDiagram Lists
-            List<string> ListOfLinks = new List<string>();
-            List<string> ListOfLinkNames = new List<string>();
-
+            Dictionary<string, string> DiagramDictionary = new Dictionary<string, string>();
+   
 
             //otElement Lists
             List<string> ListOfConnectors = new List<string>();
             List<string> ListOfConnectorNames = new List<string>();
+            Dictionary<string, string> ElementAttributes = new Dictionary<string, string>();
+            RestfulEA.Models.EA_TaggedValueStore myTVS = new Models.EA_TaggedValueStore();
+
+
+            //otConnector 
+            //EA.Connector MyLink = new EA.Connector();
+            EA.Connector Mycon;
+
+            Dictionary<string, string> ConnectorDictionary = new Dictionary<string, string>();
+
 
 
             //Objects for the JSON
@@ -177,6 +198,7 @@ namespace RestfulEA.Controllers
             switch (ThingArrary[1])
             {
                 case "otPackage":
+                    EA.Package PackageToShow = (EA.Package)m_Repository.GetPackageByGuid(ThingArrary[2]);
                     EDM.Generate_otPackage_content(PackageToShow, out ListOfPackages, out ListOfDiagrams, out ListOfElements, out ListOfPackagesNames, out ListOfDiagramsNames, out ListOfElementsNames);
                     ViewBag.ListOfPackages = ListOfPackages;
                     ViewBag.ListOfDiagrams = ListOfDiagrams;
@@ -185,49 +207,63 @@ namespace RestfulEA.Controllers
                     ViewBag.ListOfDiagramsNames = ListOfDiagramsNames;
                     ViewBag.ListOfElementsNames = ListOfElementsNames;
 
-
-
                     break;
                 case "otDiagram":
-                    EDM.Generate_otDiagram_content(m_Repository, ThingArrary[2], out ListOfElements,out ListOfElementsNames, out ListOfLinks, out ListOfLinkNames);
 
-
-
+                    //HTML Content
+                    EDM.Generate_otDiagram_content(m_Repository, ThingArrary[2], SP_Root_URL, out ListOfElements,out ListOfElementsNames, out ListOfConnectors, out ListOfConnectorNames, out DiagramDictionary);
                     ViewBag.ListOfElements = ListOfElements;
                     ViewBag.ListOfElementsNames = ListOfElementsNames;
-                    ViewBag.ListOfLinkURLs = ListOfLinks;
-                    ViewBag.ListOfLinkNames = ListOfLinkNames;
-                    ViewBag.CurrentURL += "/" + ThingArrary[0] + "|" + ThingArrary[1] + "|" + ThingArrary[2];
-                    ViewData["CurrentURL"] = ThingArrary[0] + "|" + ThingArrary[1] + "|" + ThingArrary[2];
-
-      
+                    ViewBag.ListOfLinkURLs = ListOfConnectors;
+                    ViewBag.ListOfLinkNames = ListOfConnectorNames;
+                    ViewBag.CurrentURL += "/" + TOI_Name + "|" + TOI_Type + "|" + TOI_GUID;
+                    ViewData["CurrentURL"] = TOI_Name + "|" + TOI_Type + "|" + TOI_GUID;
+                    ViewData["SP_URL"] = BaseURL[0] + "/" + BaseURL[1];
                     ViewBag.DiagramName = ThingArrary[0];
 
+                    //JSON Conten
 
                     break;
                 case "otElement":
-                    EA.Element MyEle = (EA.Element)m_Repository.GetElementByGuid(ThingArrary[2]);
-                    ViewBag.Author = MyEle.Author;
-                    ViewBag.ElementName = MyEle.Name;
-                    ViewBag.notes = MyEle.Notes;
-
-                    RestfulEA.Models.EA_TaggedValueStore myTVS = new Models.EA_TaggedValueStore();
-                    myTVS.ParentElementName = MyEle.Name;
-                    myTVS.ParentElementGUID = MyEle.ElementGUID;
-
+                    EDM.Generate_otElement_content(m_Repository, ThingArrary[2], out ListOfDiagrams, out ListOfDiagramsNames, out ListOfConnectors, out ListOfConnectorNames, out ElementAttributes, out  myTVS);
+                    ViewBag.TG_Store = myTVS;
+                    ViewBag.ListOfConnectors = ListOfConnectors;
+                    ViewBag.ListOfConnectorNames = ListOfConnectorNames;
+                    ViewBag.ListOfDiagramsNames = ListOfDiagramsNames;
+                    ViewBag.ListOfDiagrams = ListOfDiagrams;
+                    ViewBag.ElementName = ElementAttributes["Name"];
+                    ViewBag.notes = ElementAttributes["Name"];
+                    ViewBag.Author = ElementAttributes["Author"];
+                    ViewData["CurrentURL"] = TOI_Name + "|" + TOI_Type + "|" + TOI_GUID;
 
                     break;
                 case "otTaggedValue":
+                    EDM.Generate_otTaggedValues_content(m_Repository, TOI_GUID, TOI_Name, out myTVS);
+                    ViewBag.TG_Store = myTVS;
+
+                    break;
 
 
+                case "otConnector":
+                    EDM.Generate_otConnector_content(m_Repository,TOI_GUID,TOI_Name,TOI_Type, out Mycon, out ConnectorDictionary);
+
+                    ViewBag.TOI_Name = TOI_Name;
+                    ViewBag.TOI_Type = TOI_Type;
+                    ViewBag.TOI_GUID = TOI_GUID;
+
+                    ViewBag.Alias = Mycon.Alias;
+                    ViewBag.Colour = Mycon.Color;
+                    ViewBag.Direction = Mycon.Direction;
+                    ViewBag.Notes = Mycon.Notes;
+                    ViewBag.Type = Mycon.Type;
+                    ViewBag.ConnectorID = Mycon.ConnectorID;
+                    ViewBag.Sterotype = Mycon.Stereotype;
 
 
-
+                    break;
                 default:
                     break;
             }
-
-
 
             //We'll look into the header to decide if we need to return somthing different for JSON
             string header = Request.Headers.Get("Accept");
@@ -235,25 +271,23 @@ namespace RestfulEA.Controllers
             if (header.Contains("html"))
             {
 
-                switch (ThingArrary[1])
+                switch (TOI_Type)
                 {
                     case "otPackage":
                         return View("EA_ShowPackage");
-
                         
                     case "otDiagram":
-
-                        return View("EA_ShowDiagram");
-
+                        return View("EA_ShowDiagram");                
                     
                     case "otElement":
-
-
-
-
-
-                        break;
+                        return View("EA_ShowElement");
+             
                     case "otTaggedValue":
+                        return View("EA_ShowTaggedValues");
+
+                    case "otConnector":
+                        return View("EA_ShowConnector");
+
 
                     default:
                         break;
@@ -265,22 +299,34 @@ namespace RestfulEA.Controllers
             if (header.Contains("json"))
             {
 
+
+                string DiagramRoot = RootURL + BaseURL[0] + "/" + BaseURL[1];
+                string headerText = "application/json";
+
                 switch (ThingArrary[1])
                 {
                     case "otPackage":
-                        JObject JObjectToReturn = EA_JsonBuilder.JsonCreatePackage(BaseURL + "/" + CleanURL[1], ListOfPackages, ListOfDiagrams, ListOfElements);
-                        return Content(JObjectToReturn.ToString(), "application/json");
+                        JObject JotPackageToReturn = EA_JsonBuilder.JsonCreatePackage(DiagramRoot, ListOfPackages, ListOfDiagrams, ListOfElements);
+                        return Content(JotPackageToReturn.ToString(), headerText);
                        
                     case "otDiagram":
+                        JObject JotDiagramToReturn = EA_JsonBuilder.JsonCreateDiagram(DiagramRoot, ListOfElements, DiagramDictionary, ListOfConnectors);
+                        return Content(JotDiagramToReturn.ToString(), headerText);
 
-    
-
-
-                        break;
+         
                     case "otElement":
+                        JObject JotElemenet = EA_JsonBuilder.JsonCreateElement(DiagramRoot, ElementAttributes, myTVS, ListOfDiagrams);
+                        return Content(JotElemenet.ToString(), headerText);
 
-                        break;
                     case "otTaggedValue":
+                        JObject jotTaggedValue = EA_JsonBuilder.JsonCreateTaggedValues(myTVS);
+                        return Content(jotTaggedValue.ToString(), headerText);
+
+                    case "otConnector":
+                        JObject jotConnector = EA_JsonBuilder.JsonCreateConnector(DiagramRoot, ConnectorDictionary);
+                        return Content(jotConnector.ToString(), headerText);
+
+
 
                     default:
                         break;

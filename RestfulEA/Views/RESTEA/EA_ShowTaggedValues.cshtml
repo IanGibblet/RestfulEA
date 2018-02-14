@@ -15,14 +15,18 @@
     <div id="container">
         <div id="header">
             <h2> Contents of @ViewBag.TOI_Name  ( @ViewBag.TOI_Type )  ;</h2>
+
+            <h3> MVC View: EA_Show Tagged Values </h3>
+
+
         </div>
         <div id="content">
 
         
 
-            <b>Tags belonging to: </b> <br /> 
+            <b>Tag: @ViewBag.TOI_Name;</b> <br /> 
             
-              @ViewBag.TOI_Name;
+            
             
              <br /><br />
       
@@ -38,7 +42,7 @@
                 {
 
                     <ul>
-                        <li> @pair.Key : @pair.Value  </li>
+                       @pair.Key : @pair.Value  
                     </ul>
 
                 }
