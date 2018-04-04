@@ -108,7 +108,43 @@
             }
 
 
+
+            <br />
+
+         
+
+
+
+            @{ 
+                string x = ViewBag.CurrentFullURL;
+            }
+
+
+            @if (ViewBag.PackageID != "1")
+            {
+                <h1> OSLC Creation Factory Service </h1>
+
+                using (Html.BeginForm())
+                {
+                    @Html.Label("Name")<br />
+                    <input type="text" name="textBoxFormData" />
+
+                    <button type="submit">Submit</button>
+
+                }
+
+
+            }
+
+
+
+
+
+
+
         </div>
+
+
 
         <br />
 

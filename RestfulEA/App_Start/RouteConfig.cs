@@ -15,6 +15,12 @@ namespace RestfulEA
 
 
             routes.MapRoute(
+                "Contact",
+                "contact",
+                new { Controller = "Contact", action = "ContactForm" }  );
+
+
+            routes.MapRoute(
                 name: "Default",
                 url: "SPC", //Show service provider catalog
                 defaults: new { Controller = "RESTEA", Action = "ServiceProviderCatalog",  }

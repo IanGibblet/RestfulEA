@@ -1,0 +1,20 @@
+﻿
+@{
+    ViewBag.Title = "ContactForm";
+}
+
+<h2>ContactForm</h2>
+
+
+<p>Form goes here</p>
+
+
+@using (Html.BeginForm())
+{
+      @Html.Label("Name")<br />
+      @Html.TextBox("Name") <br />
+
+      <button type="submit">Submit</button>
+
+}
+

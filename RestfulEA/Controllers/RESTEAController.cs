@@ -15,6 +15,8 @@ namespace RestfulEA.Controllers
     public class RESTEAController : Controller
     {
 
+        //INFORMATION DISPLAY
+
         //Get all of the repositories
         public ActionResult ServiceProviderCatalog()
         {
@@ -116,8 +118,6 @@ namespace RestfulEA.Controllers
         }
 
 
-
-
         //Get a "thing" from inside the rest service
         public ActionResult ServiceProviderContent()
         {
@@ -129,29 +129,45 @@ namespace RestfulEA.Controllers
 
             //TODO - Investigate if we really need this.
             string RootURL = EDM.GetBaseURL(Request, Url);
+            
 
 
-            //TODO - Tidy up all this array stuff
-            //Get the URL that was posted.
-            var UrlAppended = this.Url.Action();
-            string UrlAppendage = UrlAppended.ToString();
-            UrlAppendage = UrlAppendage.Remove(0, 1);
-            var URLArray = UrlAppendage.Split('/'); //parse the URL
-            string[] BaseURL = URLArray.Where(x => !string.IsNullOrEmpty(x)).ToArray(); //Clean emptycells
-            var ThingArrary = BaseURL[2].Split('|');
+        
 
-            string TOI_Name = ThingArrary[0];
-            string TOI_Type = ThingArrary[1];
-            string TOI_GUID = ThingArrary[2];
-            string SP_Root_URL = RootURL + BaseURL[0] + "/" + BaseURL[1];
+            string RawURL = this.Url.Action();
+
+            string[] Spilt_URL = RawURL.Split('/');
+
+
+            string URL_SPC = Spilt_URL[1];  //Will always be SPC
+            string URL_SP = Spilt_URL[2];   //Name of EA file
+            string URL_TOI = Spilt_URL[3];
+
+            string[] Split_TOI = Spilt_URL[3].Split('|');
+
+
+         
+            string TOI_Name = Split_TOI[0];
+            string TOI_Type = Split_TOI[1];
+            string TOI_GUID = Split_TOI[2];
+
+
+
+            
+          
+
+
+            string SP_Root_URL = RootURL + URL_SPC + "/" + URL_SP;
         
             ViewBag.TOI_Name = TOI_Name;
             ViewBag.TOI_Type = TOI_Type;
             ViewBag.TOI_GUID = TOI_GUID;
-            ViewBag.CurrentURL = BaseURL[0] + "/" + BaseURL[1];
+            ViewBag.CurrentURL = URL_SPC + "/" + URL_SP;
+            ViewBag.CurrentFullURL = URL_SPC + "/" + URL_SP + "/" + URL_TOI;
+
 
             //Get the master repo which is needed by all things that have been clicked.
-            m_Repository = getEA_Repos(URLArray[1]);
+            m_Repository = getEA_Repos(URL_SP);
             
             //otPackage Lists
             List<string> ListOfPackages = new List<string>();
@@ -185,11 +201,12 @@ namespace RestfulEA.Controllers
 
             //Generate the content for the viewbag depending on type of object that the 
             //user last clicked on.
-            switch (ThingArrary[1])
+            switch (TOI_Type)
             {
                 case "otPackage":
-                    EA.Package PackageToShow = (EA.Package)m_Repository.GetPackageByGuid(ThingArrary[2]);
+                    EA.Package PackageToShow = (EA.Package)m_Repository.GetPackageByGuid(TOI_GUID);
                     EDM.Generate_otPackage_content(PackageToShow, out ListOfPackages, out ListOfDiagrams, out ListOfElements, out ListOfPackagesNames, out ListOfDiagramsNames, out ListOfElementsNames);
+                    ViewBag.PackageID = PackageToShow.PackageID.ToString();
                     ViewBag.ListOfPackages = ListOfPackages;
                     ViewBag.ListOfDiagrams = ListOfDiagrams;
                     ViewBag.ListOfElements = ListOfElements;
@@ -201,21 +218,21 @@ namespace RestfulEA.Controllers
                 case "otDiagram":
 
                     //HTML Content
-                    EDM.Generate_otDiagram_content(m_Repository, ThingArrary[2], SP_Root_URL, out ListOfElements,out ListOfElementsNames, out ListOfConnectors, out ListOfConnectorNames, out DiagramDictionary);
+                    EDM.Generate_otDiagram_content(m_Repository, TOI_GUID, SP_Root_URL, out ListOfElements,out ListOfElementsNames, out ListOfConnectors, out ListOfConnectorNames, out DiagramDictionary);
                     ViewBag.ListOfElements = ListOfElements;
                     ViewBag.ListOfElementsNames = ListOfElementsNames;
                     ViewBag.ListOfLinkURLs = ListOfConnectors;
                     ViewBag.ListOfLinkNames = ListOfConnectorNames;
                     ViewBag.CurrentURL += "/" + TOI_Name + "|" + TOI_Type + "|" + TOI_GUID;
                     ViewData["CurrentURL"] = TOI_Name + "|" + TOI_Type + "|" + TOI_GUID;
-                    ViewData["SP_URL"] = BaseURL[0] + "/" + BaseURL[1];
-                    ViewBag.DiagramName = ThingArrary[0];
+                    ViewData["SP_URL"] = URL_SPC + "/" + URL_SP;
+                    ViewBag.DiagramName = TOI_Name;
 
                     //JSON Conten
 
                     break;
                 case "otElement":
-                    EDM.Generate_otElement_content(m_Repository, ThingArrary[2], out ListOfDiagrams, out ListOfDiagramsNames, out ListOfConnectors, out ListOfConnectorNames, out ElementAttributes, out  myTVS);
+                    EDM.Generate_otElement_content(m_Repository, TOI_GUID, out ListOfDiagrams, out ListOfDiagramsNames, out ListOfConnectors, out ListOfConnectorNames, out ElementAttributes, out  myTVS);
                     ViewBag.TG_Store = myTVS;
                     ViewBag.ListOfConnectors = ListOfConnectors;
                     ViewBag.ListOfConnectorNames = ListOfConnectorNames;
@@ -292,10 +309,10 @@ namespace RestfulEA.Controllers
             {
 
 
-                string DiagramRoot = RootURL + BaseURL[0] + "/" + BaseURL[1];
+                string DiagramRoot = RootURL + URL_SPC + "/" + URL_SP;
                 string headerText = "application/json";
 
-                switch (ThingArrary[1])
+                switch (TOI_GUID)
                 {
                     case "otPackage":
                         JObject JotPackageToReturn = EA_JsonBuilder.JsonCreatePackage(DiagramRoot, ListOfPackages, ListOfDiagrams, ListOfElements);
@@ -334,11 +351,6 @@ namespace RestfulEA.Controllers
 
             return null;
         }
-
-
-
-
-
 
 
         public ActionResult OSLC_SmallPreview()
@@ -463,7 +475,7 @@ namespace RestfulEA.Controllers
 
         }
 
-
+        //DISPLAY SUPPORT
 
         private List<string> GetListOfSPs()
         {
@@ -504,6 +516,44 @@ namespace RestfulEA.Controllers
             }
             return null;
         }
+
+
+
+
+        //FORM SUBMISSION
+
+       [HttpPost]
+        public ActionResult  ServiceProviderContent(string textBoxFormData)
+        {
+
+            string RawURL = this.Url.Action();
+            string[] SpiltURL = RawURL.Split('/');
+            string[] RAW_TOI = SpiltURL[3].Split('|');
+
+
+
+            string ServiceProvider = SpiltURL[2];
+            string TOI_Name = RAW_TOI[0];
+            string TOI_Type = RAW_TOI[1];
+            string TOI_GUID = RAW_TOI[2];        
+
+
+            EA.Repository m_Repository = new EA.Repository();
+            m_Repository = getEA_Repos(SpiltURL[2]);
+
+
+
+
+            EA_Creation_Factory.CreateDiagram(m_Repository, TOI_GUID, textBoxFormData);
+
+
+
+
+
+            return ServiceProviderContent();
+        }
+
+
 
 
 
