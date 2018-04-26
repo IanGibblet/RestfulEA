@@ -158,10 +158,14 @@
     </Compile>
     <Compile Include="Models\BusinessLogic\EA_Creation_Factory.cs" />
     <Compile Include="Models\BusinessLogic\EA_Data_Manipulator.cs" />
+    <Compile Include="Models\BusinessLogic\EA_ElementPlacer.cs" />
+    <Compile Include="Models\BusinessLogic\MOSSEC_HELPER.cs" />
     <Compile Include="Models\Structure\EA_Diagram.cs" />
     <Compile Include="Models\BusinessLogic\EA_Helper.cs" />
     <Compile Include="Models\BusinessLogic\EA_JsonBuilder.cs" />
     <Compile Include="Models\BusinessLogic\EA_TaggedValue.cs" />
+    <Compile Include="ParseSupport\MossecParse.cs" />
+    <Compile Include="ParseSupport\MoSSEC_Composite.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

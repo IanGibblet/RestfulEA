@@ -12,8 +12,9 @@ namespace RestfulEA.App_Start
     public class StartUp
     {
 
-        private const string WorkspacePathDirectory = @"C:\Landfill\";
-        static string  pathForEAObject = @"C:\Landfill\EA_Cache.txt";
+        
+        //private const string WorkspacePathDirectory = @"C:\Landfill\";
+       // static string  pathForEAObject = @"C:\Landfill\EA_Cache.txt";
 
         public static void Init()
         {
@@ -86,7 +87,11 @@ namespace RestfulEA.App_Start
 
             List<string> ListToReturn = new List<string>();
 
-            string[] fileEntries = Directory.GetFiles(WorkspacePathDirectory);
+
+          
+            string[] fileEntries = Directory.GetFiles(System.Configuration.ConfigurationManager.AppSettings["EAPWORKINGDIR"]);
+
+
 
             //Get all files with the extension .eap
             foreach (string File in fileEntries)

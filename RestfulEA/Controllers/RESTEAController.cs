@@ -9,11 +9,14 @@ using System.Runtime.Serialization.Json;
 using System.IO;
 using Newtonsoft.Json.Linq;
 using RestfulEA.Models.BusinessLogic;
+using System.Xml.Serialization;
+using System.Text;
 
 namespace RestfulEA.Controllers
 {
     public class RESTEAController : Controller
     {
+
 
         //INFORMATION DISPLAY
 
@@ -82,7 +85,7 @@ namespace RestfulEA.Controllers
 
 
             EA.Repository m_Repository = new EA.Repository();  //store the current working repository
-            m_Repository = getEA_Repos(TOI_Array[0]);
+            m_Repository = GetEA_Repos(TOI_Array[0]);
 
 
 
@@ -167,7 +170,7 @@ namespace RestfulEA.Controllers
 
 
             //Get the master repo which is needed by all things that have been clicked.
-            m_Repository = getEA_Repos(URL_SP);
+            m_Repository = GetEA_Repos(URL_SP);
             
             //otPackage Lists
             List<string> ListOfPackages = new List<string>();
@@ -275,6 +278,12 @@ namespace RestfulEA.Controllers
             //RETURN HTML
             string header = Request.Headers.Get("Accept");
 
+            if(header == null)
+            {
+                return Content("Header is null");
+            }
+
+
             if (header.Contains("html"))
             {
 
@@ -378,7 +387,7 @@ namespace RestfulEA.Controllers
             string ThingOfInterest = CleanURL[CleanURL.Count() - 2];
             string ActionOfInterest = CleanURL[CleanURL.Count() - 1];
 
-            m_Repository = getEA_Repos(CleanURL[1]);
+            m_Repository = GetEA_Repos(CleanURL[1]);
 
             string[] UrlArray = ThingOfInterest.Split('|');
 
@@ -452,7 +461,7 @@ namespace RestfulEA.Controllers
             string ThingOfInterest = CleanURL[CleanURL.Count() - 2];
             string ActionOfInterest = CleanURL[CleanURL.Count() - 1];
 
-            m_Repository = getEA_Repos(CleanURL[1]);
+            m_Repository = GetEA_Repos(CleanURL[1]);
 
             string[] UrlArray = ThingOfInterest.Split('|');
 
@@ -495,7 +504,7 @@ namespace RestfulEA.Controllers
         //Get the stored EA reposiory from the application state
         //This can't goto the Help class because the repository is held in the 
         //application state variable
-        private EA.Repository getEA_Repos(string pickedSP)
+        private EA.Repository GetEA_Repos(string pickedSP)
         {
 
             List<EA.Repository> MyListRepo = new List<EA.Repository>();
@@ -520,37 +529,82 @@ namespace RestfulEA.Controllers
 
 
 
-        //FORM SUBMISSION
+        //CREATION FACTORY (HTTP)
+        //Can be called from two places i)The browser  ii)Outside the webservice
+        //A browser post will have the package name.
+        //A webservice post will lack the package name.
 
        [HttpPost]
         public ActionResult  ServiceProviderContent(string textBoxFormData)
         {
+            //Needed for entry in to the EA API
+            EA.Repository m_Repository = new EA.Repository();
+
+
+            Stream req = Request.InputStream;
+            req.Seek(0, System.IO.SeekOrigin.Begin);
+            string MossecContent = new StreamReader(req).ReadToEnd();        //Get the content sent by the client. Hopfully, the Aircadia mossec information
 
             string RawURL = this.Url.Action();
             string[] SpiltURL = RawURL.Split('/');
             string[] RAW_TOI = SpiltURL[3].Split('|');
 
 
+            //If RAW_TOI contaions | then we know which Service Provider has requested the creation Factory.
+            //If we don't, we assume someone has just posted to the tool from outside.
+            //If this happens, use the name of the Architecture to create a service provider if one does not exist.
 
-            string ServiceProvider = SpiltURL[2];
-            string TOI_Name = RAW_TOI[0];
-            string TOI_Type = RAW_TOI[1];
-            string TOI_GUID = RAW_TOI[2];        
-
-
-            EA.Repository m_Repository = new EA.Repository();
-            m_Repository = getEA_Repos(SpiltURL[2]);
-
-
-
-
-            EA_Creation_Factory.CreateDiagram(m_Repository, TOI_GUID, textBoxFormData);
+            //BROWSER TO CREATION FACTORY
+            if (RawURL.Contains("|"))
+            {
+                string ServiceProvider = SpiltURL[2];
+                string TOI_Name = RAW_TOI[0];
+                string TOI_Type = RAW_TOI[1];
+                string TOI_GUID = RAW_TOI[2];
 
 
+                 m_Repository = GetEA_Repos(SpiltURL[2]);
+
+                //CREATE GUFF FOR NOW
+                EA_Creation_Factory.CreateDiagram(m_Repository, TOI_GUID, textBoxFormData);
+
+                return ServiceProviderContent(); //Call the view so the user sees the updates in their browsers
+            }
+
+            //WEBSERVICE TO CREATION FACTORY
+            else
+            {
+                //Assume we don't have any | therefore we are dealing with an external post
 
 
 
-            return ServiceProviderContent();
+                //UOS is the top level object from the mossec file
+                XmlSerializer x = new XmlSerializer(typeof(Uos));        
+                Uos UOSobject = (Uos)x.Deserialize(new StringReader(MossecContent));
+
+
+
+                List<EA.Repository> MyListRepo = new List<EA.Repository>();
+                MyListRepo = HttpContext.Application["IanList"] as List<EA.Repository>;   //Get a list of the current project in case we want to add to an existing one.
+
+              
+                EA_Creation_Factory.PostAircadiaToEA(MyListRepo, RAW_TOI[0].ToString(), UOSobject);
+
+
+
+
+                return null;
+
+
+
+            }
+
+
+
+
+
+
+      
         }
 
 
